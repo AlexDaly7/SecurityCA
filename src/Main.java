@@ -42,7 +42,7 @@ void main(String[] args) throws Exception {
         });
 
         String line;
-        while ((line = IO.readln()) != null) msgManager.sendTextMessage(line);
+        while ((line = IO.readln()) != null) msgManager.handleOutgoing(line);
     }
 }
 

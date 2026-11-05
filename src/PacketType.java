@@ -1,3 +1,4 @@
 public enum PacketType {
-    MESSAGE
+    MESSAGE,
+    FILE
 }
