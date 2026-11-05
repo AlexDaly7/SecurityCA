@@ -43,6 +43,8 @@ void main(String[] args) throws Exception {
 
         String line;
         while ((line = IO.readln()) != null) msgManager.handleOutgoing(line);
+    } catch(SocketException e){
+        IO.println("Error failed connection:" + e);
     }
 }
 
