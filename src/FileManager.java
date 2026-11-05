@@ -17,6 +17,7 @@ public class FileManager {
                     .put(file)
                     .array();
 
+            IO.println("File has been read successfully!\nSending now...");
             return new CommandOutput(new Packet(PacketType.FILE, data));
         } catch (IOException e) {
             return new CommandOutput("Error reading file " + filename);
@@ -25,7 +26,8 @@ public class FileManager {
 
     public static void saveFile(byte[] fileData, String name) {
         // TODO: This is extremely unsafe in practice and needs to have the path sanitised.
-        File file = new File("storage/"+name);
+        Path path = Path.of("storage", name);
+        File file = new File(path.toUri());
 
         try {
             OutputStream os = new FileOutputStream(file);
