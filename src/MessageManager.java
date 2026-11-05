@@ -2,8 +2,12 @@ import javax.crypto.KDF;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.HKDFParameterSpec;
 import java.io.BufferedReader;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.security.GeneralSecurityException;
 import java.util.Arrays;
 import java.util.Map;
@@ -40,9 +44,18 @@ public class MessageManager {
                 switch (packet.type()) {
                     case MESSAGE -> IO.println("> " + new String(packet.data(), StandardCharsets.UTF_8));
                     case FILE -> {
-                        // TODO: ALEX FIX THIS AND MAKE IT SAVE TO A FOLDER LOCALLY !!!
-                        // also rn you just get raw bytes so add byte headers indicating filename
-                        // also also only save filename not full path or else you create an RCE
+                        ByteBuffer buffer = ByteBuffer.wrap(packet.data());
+
+                        // Maybe catch error in case improper sending message.
+                        byte[] fileName = new byte[buffer.getShort()];
+                        buffer.get(fileName);
+
+                        byte[] fileData = new byte[buffer.remaining()];
+                        buffer.get(fileData);
+
+                        String name = Path.of(new String(fileName, StandardCharsets.UTF_8)).getFileName().toString();
+
+                        FileManager.saveFile(fileData, name);
                     }
                     default ->  IO.println("Unknown receiving packet type: " + packet.type());
                 }
