@@ -24,6 +24,11 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.16.0</version>
+            </plugin>
             <!-- see https://maven.apache.org/plugins/maven-shade-plugin/examples/includes-excludes.html-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
