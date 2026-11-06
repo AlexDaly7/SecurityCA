@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Connect (localhost)" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="com.securityca.Main" />
+    <module name="SecurityCA" />
+    <option name="PROGRAM_PARAMETERS" value="127.0.0.1" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
