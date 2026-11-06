@@ -14,9 +14,12 @@ import java.security.KeyFactory;
 import java.security.KeyPairGenerator;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
+import com.formdev.flatlaf.FlatLightLaf;
 
 public class Main {
     static void main(String[] args) throws Exception {
+        FlatLightLaf.setup();
+
         int port = 5000;
 
         // If we're connecting to a device (aka have an IP address arg), connect, otherwise listen
