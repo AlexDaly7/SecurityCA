@@ -8,11 +8,11 @@ import com.securityca.crypto.CryptoUtils;
 import javax.crypto.SecretKey;
 import java.io.BufferedReader;
 import java.io.PrintWriter;
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
 import java.security.GeneralSecurityException;
+import java.security.MessageDigest;
 import java.util.Arrays;
+import java.util.HexFormat;
 import java.util.Map;
 
 public class MessageManager {
@@ -47,18 +47,21 @@ public class MessageManager {
                 switch (packet.type()) {
                     case MESSAGE -> IO.println("> " + new String(packet.data(), StandardCharsets.UTF_8));
                     case FILE -> {
-                        ByteBuffer buffer = ByteBuffer.wrap(packet.data());
+//                        ByteBuffer buffer = ByteBuffer.wrap(packet.data());
+//
+//                        // Maybe catch error in case improper sending message.
+//                        byte[] fileName = new byte[buffer.getShort()];
+//                        buffer.get(fileName);
+//
+//                        byte[] fileData = new byte[buffer.remaining()];
+//                        buffer.get(fileData);
+//
+//                        String name = Path.of(new String(fileName, StandardCharsets.UTF_8)).getFileName().toString();
 
-                        // Maybe catch error in case improper sending message.
-                        byte[] fileName = new byte[buffer.getShort()];
-                        buffer.get(fileName);
+                        var digest = MessageDigest.getInstance("SHA-256");
+                        var hashName = digest.digest(packet.data());
 
-                        byte[] fileData = new byte[buffer.remaining()];
-                        buffer.get(fileData);
-
-                        String name = Path.of(new String(fileName, StandardCharsets.UTF_8)).getFileName().toString();
-
-                        FileManager.saveFile(fileData, name);
+                        FileManager.saveFile(packet.data(), HexFormat.of().formatHex(hashName) + ".dat");
                     }
                     default ->  IO.println("Unknown receiving packet type: " + packet.type());
                 }

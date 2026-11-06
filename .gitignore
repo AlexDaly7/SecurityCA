@@ -63,3 +63,7 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+### Storage
+storage/
+!storage/FilesWillBeSavedHere.txt

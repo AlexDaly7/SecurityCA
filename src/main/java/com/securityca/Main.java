@@ -3,6 +3,7 @@ package com.securityca;
 import com.securityca.network.MessageManager;
 
 import javax.crypto.KeyAgreement;
+import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -15,15 +16,23 @@ import java.security.KeyPairGenerator;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 import com.formdev.flatlaf.FlatLightLaf;
+import com.securityca.ui.ChatWindow;
+import com.securityca.ui.StartupWindow;
 
 public class Main {
     static void main(String[] args) throws Exception {
         FlatLightLaf.setup();
 
         int port = 5000;
+        boolean isServer = args.length == 0;
+
+        if (!isServer) {
+            String decString = IO.readln("Enter your decryption key: ");
+            ClientState.setDecryptionKey(decString);
+        }
 
         // If we're connecting to a device (aka have an IP address arg), connect, otherwise listen
-        try (var socket = args.length == 0 ? listen(port) : new Socket(args[0], port);
+        try (var socket = isServer ? listen(port) : new Socket(args[0], port);
              var in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
              var out = new PrintWriter(socket.getOutputStream(), true)) {
 

@@ -1,13 +1,17 @@
 package com.securityca.command;
 
+import com.securityca.ClientState;
+import com.securityca.crypto.CryptoUtils;
 import com.securityca.network.Packet;
 import com.securityca.network.PacketType;
 
 import java.io.*;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.GeneralSecurityException;
 
 public class FileManager {
     public static CommandOutput readFile(String filename) {
@@ -21,10 +25,14 @@ public class FileManager {
                     .put(file)
                     .array();
 
+            String encrypted = CryptoUtils.encrypt(ClientState.getDecryptionKey(), data);
+
             IO.println("File has been read successfully!\nSending now...");
-            return new CommandOutput(new Packet(PacketType.FILE, data));
+            return new CommandOutput(new Packet(PacketType.FILE, encrypted.getBytes(StandardCharsets.UTF_8)));
         } catch (IOException e) {
             return new CommandOutput("Error reading file " + filename);
+        } catch (GeneralSecurityException e) {
+            return new CommandOutput("Error encrypting file " + filename);
         }
     }
 
