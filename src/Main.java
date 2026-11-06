@@ -1,5 +1,15 @@
+import com.formdev.flatlaf.FlatLightLaf;
+
+import javax.swing.*;
+
 
 void main(String[] args) throws Exception {
+    FlatLightLaf.setup();
+
+    // TEMP: show the GUI and skip the networking code below
+    SwingUtilities.invokeLater(() -> StartupWindow.show());
+    if (true) return;
+
     int port = 5000;
 
     // If we're connecting to a device (aka have an IP address arg), connect, otherwise listen
