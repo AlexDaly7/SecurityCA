@@ -1,4 +1,4 @@
-package com.securityca;
+package com.securityca.command;
 
 @FunctionalInterface
 public interface Command {

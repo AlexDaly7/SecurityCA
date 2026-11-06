@@ -1,9 +1,11 @@
-package com.securityca;
+package com.securityca.command;
+
+import com.securityca.network.Packet;
 
 public class CommandOutput {
-    boolean success;
-    Packet packet;
-    String error;
+    public boolean success;
+    public Packet packet;
+    public String error;
 
     public CommandOutput(Packet packet) {
         this.success = true;

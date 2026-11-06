@@ -1,4 +1,4 @@
-package com.securityca;
+package com.securityca.ui;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;

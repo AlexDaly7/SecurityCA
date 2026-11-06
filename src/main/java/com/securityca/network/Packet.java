@@ -1,4 +1,4 @@
-package com.securityca;
+package com.securityca.network;
 
 import java.util.Arrays;
 

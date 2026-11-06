@@ -1,4 +1,4 @@
-package com.securityca;
+package com.securityca.crypto;
 
 import javax.crypto.*;
 import javax.crypto.spec.GCMParameterSpec;

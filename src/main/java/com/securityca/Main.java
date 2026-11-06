@@ -1,7 +1,8 @@
 package com.securityca;
 
+import com.securityca.network.MessageManager;
+
 import javax.crypto.KeyAgreement;
-import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;

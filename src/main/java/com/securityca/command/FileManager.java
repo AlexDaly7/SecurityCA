@@ -1,4 +1,7 @@
-package com.securityca;
+package com.securityca.command;
+
+import com.securityca.network.Packet;
+import com.securityca.network.PacketType;
 
 import java.io.*;
 import java.nio.ByteBuffer;

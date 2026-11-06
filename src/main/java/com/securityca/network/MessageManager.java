@@ -1,4 +1,9 @@
-package com.securityca;
+package com.securityca.network;
+
+import com.securityca.command.Command;
+import com.securityca.command.CommandOutput;
+import com.securityca.command.FileManager;
+import com.securityca.crypto.CryptoUtils;
 
 import javax.crypto.KDF;
 import javax.crypto.SecretKey;
