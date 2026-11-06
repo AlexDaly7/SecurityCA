@@ -21,4 +21,34 @@
             <version>3.8</version>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <!-- see https://maven.apache.org/plugins/maven-shade-plugin/examples/includes-excludes.html-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.6.2</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                           <transformers>
+                               <transformer>
+                                   <mainClass>com.securityca.Main</mainClass>
+                                   <manifestEntries>
+                                       <Multi-Release>true</Multi-Release>
+                                   </manifestEntries>
+                               </transformer>
+                           </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>
