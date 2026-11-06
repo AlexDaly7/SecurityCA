@@ -1,9 +1,10 @@
+package com.securityca;
+
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Base64;
 
 public class FileManager {
     public static CommandOutput readFile(String filename) {

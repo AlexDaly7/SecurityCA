@@ -1,4 +1,5 @@
-import javax.crypto.*;
+package com.securityca;
+
 import java.util.Arrays;
 
 public record Packet(PacketType type, byte[] data) {

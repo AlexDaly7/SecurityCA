@@ -1,3 +1,5 @@
+package com.securityca;
+
 public class CommandOutput {
     boolean success;
     Packet packet;
