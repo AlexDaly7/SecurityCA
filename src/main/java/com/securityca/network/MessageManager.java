@@ -5,9 +5,7 @@ import com.securityca.command.CommandOutput;
 import com.securityca.command.FileManager;
 import com.securityca.crypto.CryptoUtils;
 
-import javax.crypto.KDF;
 import javax.crypto.SecretKey;
-import javax.crypto.spec.HKDFParameterSpec;
 import java.io.BufferedReader;
 import java.io.PrintWriter;
 import java.nio.ByteBuffer;
@@ -32,7 +30,7 @@ public class MessageManager {
         this.out = out;
         // "chat v1" is the label. This is so we can later use one secret for multiple keys to distinguish operations, say once we add file transfer/storage/accession, e.g. "files v1"
         // Turn into AES key. Done by first taking the raw secret, then "expanding" with our "chat v1" label and producing the 32byte AES key.
-        this.key = KDF.getInstance("HKDF-SHA256").deriveKey("AES", HKDFParameterSpec.ofExtract().addIKM(sharedSecret).thenExpand("chat v1".getBytes(), 32));
+        this.key = CryptoUtils.aesFromSharedSecret(sharedSecret, "chat v1");
     }
 
     public void send(Packet packet) throws GeneralSecurityException {

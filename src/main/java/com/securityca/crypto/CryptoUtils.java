@@ -2,6 +2,7 @@ package com.securityca.crypto;
 
 import javax.crypto.*;
 import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.HKDFParameterSpec;
 import java.security.*;
 import java.util.Base64;
 
@@ -32,5 +33,9 @@ public class CryptoUtils {
         cipher.init(Cipher.DECRYPT_MODE, key, new GCMParameterSpec(128, b64.decode(parts[0])));
 
         return cipher.doFinal(b64.decode(parts[1]));
+    }
+
+    public static SecretKey aesFromSharedSecret(byte[] sharedSecret, String label) throws GeneralSecurityException {
+        return KDF.getInstance("HKDF-SHA256").deriveKey("AES", HKDFParameterSpec.ofExtract().addIKM(sharedSecret).thenExpand(label.getBytes(), 32));
     }
 }
