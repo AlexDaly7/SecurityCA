@@ -1,9 +1,9 @@
 package com.securityca;
 
+import com.securityca.manifest.ManifestManager;
 import com.securityca.network.MessageManager;
 
 import javax.crypto.KeyAgreement;
-import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -16,19 +16,21 @@ import java.security.KeyPairGenerator;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 import com.formdev.flatlaf.FlatLightLaf;
-import com.securityca.ui.ChatWindow;
-import com.securityca.ui.StartupWindow;
 
 public class Main {
     static void main(String[] args) throws Exception {
         FlatLightLaf.setup();
 
+
+
         int port = 5000;
         boolean isServer = args.length == 0;
 
+        // TODO: The personal key must be checked using manifest manager, and opportunity for user to retry.
         if (!isServer) {
             String decString = IO.readln("Enter your decryption key: ");
             ClientState.setDecryptionKey(decString);
+            ManifestManager.checkManifest();
         }
 
         // If we're connecting to a device (aka have an IP address arg), connect, otherwise listen
