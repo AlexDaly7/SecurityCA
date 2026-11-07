@@ -30,12 +30,12 @@ public class ManifestManager {
         Files.createDirectories(DIR);
 
         if(!Files.exists(PATH)) {
-            System.out.println("manifest.bin created.");
+            IO.println("manifest.bin created.");
             entries = new ArrayList<>();
             loaded = true;
             save();
         } else {
-            System.out.println("manifest.bin already exists");
+            IO.println("manifest.bin already exists");
             load();
         }
     }
@@ -61,7 +61,7 @@ public class ManifestManager {
     }
 
     public static List<FileEntry> deserialize(byte[] data) throws IOException {
-        return MAPPER.readValue(data, new TypeReference<List<FileEntry>>() {});
+        return MAPPER.readValue(data, new TypeReference<>() {});
     }
 
     public static void saveFile(String id, String name) throws GeneralSecurityException, IOException {
