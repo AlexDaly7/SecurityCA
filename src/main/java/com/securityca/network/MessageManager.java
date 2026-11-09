@@ -15,7 +15,6 @@ import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.nio.ReadOnlyBufferException;
 import java.nio.charset.StandardCharsets;
-import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -35,23 +34,15 @@ public class MessageManager {
     private final PrintWriter out;
 
     public MessageManager(byte[] sharedSecret,  BufferedReader in, PrintWriter out) {
-        try {
             this.in = in;
             this.out = out;
             // "chat v1" is the label. This is so we can later use one secret for multiple keys to distinguish operations, say once we add file transfer/storage/accession, e.g. "files v1"
             // Turn into AES key. Done by first taking the raw secret, then "expanding" with our "chat v1" label and producing the 32byte AES key.
             this.key = CryptoUtils.aesFromSharedSecret(sharedSecret, "chat v1");
-        } catch(GeneralSecurityException e){
-            throw new RuntimeException("Error, MessageManager could not be constructed", e);
-        }
     }
 
     public void send(Packet packet) {
-        try {
             out.println(CryptoUtils.encrypt(key, packet.toBytes()));
-        } catch(GeneralSecurityException e){
-            IO.println("Error:" + e);
-        }
     }
 
     public void handleIncoming() {
@@ -125,8 +116,6 @@ public class MessageManager {
             IO.println("Error, cryptographic algorithm not available:" + e);
         } catch(NullPointerException e){
             IO.println("Error, null instead of valid object:" + e);
-        }  catch(GeneralSecurityException e){
-            IO.println("Error:" + e);
         }
     }
 

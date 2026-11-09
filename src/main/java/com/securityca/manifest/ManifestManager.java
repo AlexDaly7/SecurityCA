@@ -11,9 +11,7 @@ import com.securityca.crypto.CryptoUtils;
 
 import javax.crypto.SecretKey;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.file.*;
-import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,10 +60,8 @@ public class ManifestManager {
         IO.println("Error, Directory not empty:" + e);
     } catch(IOException e){
         IO.println("Error, IO Exception occurred:" + e);
-    } catch(GeneralSecurityException e){
-        IO.println("Error:" + e);
     }
-}
+    }
 
     public static void load() {
      try{
@@ -77,8 +73,6 @@ public class ManifestManager {
          IO.println("Error, Java vm out of memory:" + e);
      } catch(IOException e){
         IO.println("Error, IO Exception occurred:" + e);
-    } catch(GeneralSecurityException e){
-        IO.println("Error:" + e);
     }
     }
 

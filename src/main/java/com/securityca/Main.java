@@ -1,13 +1,12 @@
 package com.securityca;
 
-import com.securityca.command.FileManager;
+
 import com.securityca.manifest.ManifestManager;
 import com.securityca.network.MessageManager;
 
 import javax.crypto.KeyAgreement;
 import java.io.*;
 import java.net.*;
-import java.nio.channels.ClosedByInterruptException;
 import java.nio.channels.IllegalBlockingModeException;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
@@ -103,8 +102,7 @@ public class Main {
             IO.println("Error, unchecked exception on channel in incorrect blocking mode:" + e);
         } catch(IOException e){
             IO.println("Error, IO Exception occurred:" + e);
-        } finally {
-            return null;
         }
+        return null;
     }
 }
