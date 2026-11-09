@@ -41,3 +41,11 @@ java -jar target/SecurityCA-1.0-SNAPSHOT.jar <ip-address>
 ### Prebuilt jar
 
 A jar can be downloaded from the build action artifacts section [here](https://github.com/AlexDaly7/SecurityCA/actions/workflows/build.yml).
+
+## Tests
+
+Test can be run with:
+
+```bash
+mvn test
+```
