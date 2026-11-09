@@ -11,7 +11,9 @@ import javax.crypto.SecretKey;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
+import java.nio.ReadOnlyBufferException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
@@ -111,6 +113,14 @@ public class MessageManager {
             }
         } catch(IOException e){
             IO.println("Error, IO Exception occurred:" + e);
+        } catch(ReadOnlyBufferException e){
+            IO.println("Error, Unchecked exception content-mutation method invoked upon read-only buffer:" + e);
+        } catch(UnsupportedOperationException e){
+            IO.println("Error, requested operation not supported:" + e);
+        } catch(BufferOverflowException e){
+            IO.println("Error, Unchecked exception put operation reached target buffer's limit:" + e);
+        } catch(IllegalArgumentException e){
+            IO.println("Error, given illegal/inapropriate argument:" + e);
         } catch(NoSuchAlgorithmException e){
             IO.println("Error, cryptographic algorithm not available:" + e);
         } catch(NullPointerException e){
