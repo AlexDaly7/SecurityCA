@@ -19,14 +19,9 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.HexFormat;
-import java.util.Map;
 import java.util.regex.PatternSyntaxException;
 
 public class MessageManager {
-    private static final Map<String, Command> commands = Map.of(
-            "FILE", args -> FileManager.readFile(args[0]),
-            "LIST", _ -> new CommandOutput(ManifestManager.getFiles().toString(), true)
-    );
 
     private final SecretKey key;
 
