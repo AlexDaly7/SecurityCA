@@ -13,6 +13,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
 
 public class FileManager {
     public static CommandOutput readFile(String filename) {
@@ -56,4 +58,33 @@ public class FileManager {
         }
         return false;
     }
+
+    // The two functions below are for the server only,
+    // TODO: Consider moving these function to a separate files
+    public static boolean deleteFile(String hex) {
+        try {
+            for (String existing : getFiles()) {
+                if (existing.equals(hex)) {
+                    return Files.deleteIfExists(FilePaths.SERVER_STORAGE.resolve(existing + ".dat"));
+                }
+            }
+        } catch(IOException e) {
+            IO.println("There was a problem deleting the file");
+        }
+        return false;
+    }
+
+    public static List<String> getFiles() {
+        try(var stream = Files.list(FilePaths.SERVER_STORAGE)) {
+            return stream
+                    .map(p -> p.getFileName().toString())
+                    .map(n -> n.substring(0, n.length()-4))
+                    .toList();
+        } catch (IOException e) {
+            IO.println("Error getting file list.");
+        }
+        return List.of();
+    }
+
+
 }

@@ -64,6 +64,20 @@ public class MessageManager {
                                 IO.println("ACK ERROR");
                             }
                         }
+                        case DELETEACK -> {
+                            ByteBuffer buffer = ByteBuffer.wrap(packet.data());
+                            byte[] hexBytes = new byte[64];
+                            buffer.get(hexBytes);
+                            int status = buffer.get();
+
+                            String hexString = new String(hexBytes, StandardCharsets.US_ASCII);
+
+                            if(status==1) {
+                                ManifestManager.deleteFile(hexString);
+                            } else {
+                                IO.println("The server failed to delete the file: "+hexString);
+                            }
+                        }
                         default ->  IO.println("Unknown receiving packet type: " + packet.type());
                     }
 
@@ -77,7 +91,6 @@ public class MessageManager {
                             String nameHex = HexFormat.of().formatHex(hashName);
 
                             if(FileManager.saveFile(packet.data(),  nameHex+ ".dat")) {
-                                // Send confirmation to the client so they can save the HexFormat id.
 
                                 byte[] status = "success".getBytes();
                                 ByteBuffer buffer = ByteBuffer.allocate(64+status.length)
@@ -94,49 +107,66 @@ public class MessageManager {
                                 this.send(new Packet(PacketType.FILEACK, buffer.array()));
                             }
                         }
+                        case DELETE -> {
+                            ByteBuffer buffer = ByteBuffer.wrap(packet.data());
+                            byte[] hex = new byte[64];
+                            buffer.get(hex);
+
+                            byte[] data;
+                            if(FileManager.deleteFile(new String(hex, StandardCharsets.UTF_8))) {
+                                data = new byte[]{(byte) 1};
+                            } else {
+                                data = new byte[]{(byte) 0};
+                            }
+                            buffer = ByteBuffer.allocate(65)
+                                    .put(hex)
+                                    .put(data);
+
+                            this.send(new Packet(PacketType.DELETEACK, buffer.array()));
+                        }
                     }
                 }
             }
         } catch(IOException e){
             IO.println("Error, IO Exception occurred:" + e);
-        } catch(ReadOnlyBufferException e){
+        } catch(ReadOnlyBufferException e) {
             IO.println("Error, Unchecked exception content-mutation method invoked upon read-only buffer:" + e);
-        } catch(UnsupportedOperationException e){
+        } catch(UnsupportedOperationException e) {
             IO.println("Error, requested operation not supported:" + e);
-        } catch(BufferOverflowException e){
+        } catch(BufferOverflowException e) {
             IO.println("Error, Unchecked exception put operation reached target buffer's limit:" + e);
-        } catch(IllegalArgumentException e){
+        } catch(IllegalArgumentException e) {
             IO.println("Error, given illegal/inapropriate argument:" + e);
-        } catch(NoSuchAlgorithmException e){
+        } catch(NoSuchAlgorithmException e) {
             IO.println("Error, cryptographic algorithm not available:" + e);
-        } catch(NullPointerException e){
+        } catch(NullPointerException e) {
             IO.println("Error, null instead of valid object:" + e);
         }
     }
 
     public void handleOutgoing(String line) {
         try{
-        var parts = line.split(" ");
+            var parts = line.split(" ");
 
-        Command command = Arrays.stream(Command.values())
-                .filter(c -> c.name().equals(parts[0]))
-                .findFirst().orElse(null);
+            Command command = Arrays.stream(Command.values())
+                    .filter(c -> c.name().equals(parts[0]))
+                    .findFirst().orElse(null);
 
-        if (command == null) {
-            this.send(new Packet(PacketType.MESSAGE, line.getBytes(StandardCharsets.UTF_8)));
-            return;
-        }
+            if (command == null) {
+                this.send(new Packet(PacketType.MESSAGE, line.getBytes(StandardCharsets.UTF_8)));
+                return;
+            }
 
-        CommandOutput output = command.run(Arrays.copyOfRange(parts, 1, parts.length));
+            CommandOutput output = command.run(Arrays.copyOfRange(parts, 1, parts.length));
 
-        if (!output.success) {
-            IO.println("Error: " + output.message);
-            return;
-        }
+            if (!output.success) {
+                IO.println("Error: " + output.message);
+                return;
+            }
 
-        // Commands may print something locally, send a packet, or both
-        if (output.message != null) IO.println(output.message);
-        if (output.packet != null) this.send(output.packet);
+            // Commands may print something locally, send a packet, or both
+            if (output.message != null) IO.println(output.message);
+            if (output.packet != null) this.send(output.packet);
         } catch(PatternSyntaxException e){
             IO.println("Error, unchecked exception in regular-expression pattern:" + e);
         } catch(ClassCastException e){
@@ -148,5 +178,5 @@ public class MessageManager {
         } catch(IllegalArgumentException e){
             IO.println("Error, given illegal/inapropriate argument:" + e);
         }
-        }
+    }
 }

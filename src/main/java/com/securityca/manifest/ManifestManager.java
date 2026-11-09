@@ -39,49 +39,49 @@ public class ManifestManager {
     }
 
     public static void save() {
-    try{
-        if(!isLoaded) throw new IllegalStateException("Manifest not loaded, blocked saving blank manifest");
+        try{
+            if(!isLoaded) throw new IllegalStateException("Manifest not loaded, blocked saving blank manifest");
 
-        String encrypted = CryptoUtils.encrypt(manifestKey, serialize(entries));
-        Path tmp = FilePaths.SERVER_MANIFEST.resolveSibling("manifest.bin.tmp");
-        Files.writeString(tmp, encrypted);
-        Files.move(tmp, FilePaths.SERVER_MANIFEST, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
-    } catch(JsonProcessingException e){
-        IO.println("Error processing JSON(not just IO):" + e);
-    } catch(InvalidPathException e){
-        IO.println("Error, Unchecked exception String cannot be converted to path):" + e);
-    } catch(IllegalArgumentException e){
-        IO.println("Error, given illegal/inapropriate argument:" + e);
-    } catch(UnsupportedOperationException e){
-        IO.println("Error, requested operation not supported:" + e);
-    } catch(FileAlreadyExistsException e){
-        IO.println("Error, That file/directory already exists:" + e);
-    } catch(DirectoryNotEmptyException e){
-        IO.println("Error, Directory not empty:" + e);
-    } catch(IOException e){
-        IO.println("Error, IO Exception occurred:" + e);
-    }
+            String encrypted = CryptoUtils.encrypt(manifestKey, serialize(entries));
+            Path tmp = FilePaths.SERVER_MANIFEST.resolveSibling("manifest.bin.tmp");
+            Files.writeString(tmp, encrypted);
+            Files.move(tmp, FilePaths.SERVER_MANIFEST, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+        } catch(JsonProcessingException e) {
+            IO.println("Error processing JSON(not just IO):" + e);
+        } catch(InvalidPathException e) {
+            IO.println("Error, Unchecked exception String cannot be converted to path):" + e);
+        } catch(IllegalArgumentException e) {
+            IO.println("Error, given illegal/inapropriate argument:" + e);
+        } catch(UnsupportedOperationException e) {
+            IO.println("Error, requested operation not supported:" + e);
+        } catch(FileAlreadyExistsException e) {
+            IO.println("Error, That file/directory already exists:" + e);
+        } catch(DirectoryNotEmptyException e) {
+            IO.println("Error, Directory not empty:" + e);
+        } catch(IOException e) {
+            IO.println("Error, IO Exception occurred:" + e);
+        }
     }
 
     public static void load() {
-     try{
-        String data = Files.readString(FilePaths.SERVER_MANIFEST);
-        byte[] decrypted = CryptoUtils.decrypt(manifestKey, data);
-        entries = deserialize(decrypted);
-        isLoaded = true;
-    } catch(OutOfMemoryError e){
-         IO.println("Error, Java vm out of memory:" + e);
-     } catch(IOException e){
-        IO.println("Error, IO Exception occurred:" + e);
-    }
+        try{
+            String data = Files.readString(FilePaths.SERVER_MANIFEST);
+            byte[] decrypted = CryptoUtils.decrypt(manifestKey, data);
+            entries = deserialize(decrypted);
+            isLoaded = true;
+        } catch(OutOfMemoryError e) {
+            IO.println("Error, Java vm out of memory:" + e);
+        } catch(IOException e){
+            IO.println("Error, IO Exception occurred:" + e);
+        }
     }
 
     public static byte[] serialize(List<FileEntry> entries) {
-     try{
-        return MAPPER.writeValueAsBytes(entries);
-    } catch(JsonProcessingException e){
-         throw new RuntimeException("Error processing JSON(not just IO):", e);
-    }
+        try{
+            return MAPPER.writeValueAsBytes(entries);
+        } catch(JsonProcessingException e){
+            throw new RuntimeException("Error processing JSON(not just IO):", e);
+        }
     }
 
     public static List<FileEntry> deserialize(byte[] data) {
@@ -128,5 +128,18 @@ public class ManifestManager {
 
     public static List<FileEntry> getFiles() {
         return entries;
+    }
+
+    public static boolean deleteFile(String hex) {
+        for(int i=0;i<entries.size();i++) {
+            if(entries.get(i).id().equals(hex)) {
+                entries.remove(i);
+
+                IO.println("The file "+hex+" was deleted.");
+                return true;
+            }
+        }
+        IO.println("There was no object in the manifest by the id: "+hex);
+        return false;
     }
 }
