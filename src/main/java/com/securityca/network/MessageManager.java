@@ -121,21 +121,27 @@ public class MessageManager {
 
     public void handleOutgoing(String line) {
         try{
-            var parts = line.split(" ");
-            Command command = commands.get(parts[0]);
+        var parts = line.split(" ");
 
-            if (command == null) {
-                this.send(new Packet(PacketType.MESSAGE, line.getBytes(StandardCharsets.UTF_8)));
-                return;
-            }
+        Command command = Arrays.stream(Command.values())
+                .filter(c -> c.name().equals(parts[0]))
+                .findFirst().orElse(null);
 
-            CommandOutput output = command.run(Arrays.copyOfRange(parts, 1, parts.length));
-
-        if (output.success) {
-            this.send(output.packet);
-        } else {
-            IO.println("Error: " + output);
+        if (command == null) {
+            this.send(new Packet(PacketType.MESSAGE, line.getBytes(StandardCharsets.UTF_8)));
+            return;
         }
+
+        CommandOutput output = command.run(Arrays.copyOfRange(parts, 1, parts.length));
+
+        if (!output.success) {
+            IO.println("Error: " + output.message);
+            return;
+        }
+
+        // Commands may print something locally, send a packet, or both
+        if (output.message != null) IO.println(output.message);
+        if (output.packet != null) this.send(output.packet);
         } catch(PatternSyntaxException e){
             IO.println("Error, unchecked exception in regular-expression pattern:" + e);
         } catch(ClassCastException e){
@@ -147,5 +153,5 @@ public class MessageManager {
         } catch(IllegalArgumentException e){
             IO.println("Error, given illegal/inapropriate argument:" + e);
         }
-    }
+        }
 }

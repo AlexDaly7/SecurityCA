@@ -35,11 +35,11 @@ public class FileManager {
             // To pass the filename to be added to the manifest.
             ManifestManager.expectAck(filename);
 
-            return new CommandOutput(new Packet(PacketType.FILE, encrypted.getBytes(StandardCharsets.UTF_8)));
+            return CommandOutput.send(new Packet(PacketType.FILE, encrypted.getBytes(StandardCharsets.UTF_8)));
         } catch (IOException e) {
-            return new CommandOutput("Error reading file " + filename, false);
+            return CommandOutput.error("Error reading file " + filename);
         } catch (GeneralSecurityException e) {
-            return new CommandOutput("Error encrypting file " + filename, false);
+            return CommandOutput.error("Error encrypting file " + filename);
         }
     }
 
