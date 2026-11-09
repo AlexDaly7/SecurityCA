@@ -4,8 +4,6 @@ import com.securityca.ClientState;
 import com.securityca.command.Command;
 import com.securityca.command.CommandOutput;
 import com.securityca.command.FileManager;
-import com.securityca.command.commands.FileCommand;
-import com.securityca.command.commands.HelpCommand;
 import com.securityca.crypto.CryptoUtils;
 import com.securityca.manifest.ManifestManager;
 
@@ -18,14 +16,8 @@ import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.HexFormat;
-import java.util.Map;
 
 public class MessageManager {
-    private static final Map<String, Command> commands = Map.of(
-            "FILE", args -> new FileCommand().run(args),
-            "HELP", args -> new HelpCommand().run(args)
-    );
-
     private final SecretKey key;
 
     private final BufferedReader in;
@@ -107,7 +99,10 @@ public class MessageManager {
 
     public void handleOutgoing(String line) throws GeneralSecurityException {
         var parts = line.split(" ");
-        Command command = commands.get(parts[0]);
+
+        Command command = Arrays.stream(Command.values())
+                .filter(c -> c.name().equals(parts[0]))
+                .findFirst().orElse(null);
 
         if (command == null) {
             this.send(new Packet(PacketType.MESSAGE, line.getBytes(StandardCharsets.UTF_8)));

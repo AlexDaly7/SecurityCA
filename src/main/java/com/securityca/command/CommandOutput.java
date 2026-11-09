@@ -7,15 +7,17 @@ public class CommandOutput {
     public Packet packet;
     public String message;
 
-    public CommandOutput(Packet packet) {
+    private CommandOutput(Packet packet) {
         this.success = true;
         this.packet = packet;
     }
 
-    public CommandOutput(String message, boolean success) {
+    private CommandOutput(String message, boolean success) {
         this.success = success;
         this.message = message;
     }
 
-
+    public static CommandOutput print(String msg) { return new CommandOutput(msg, true); }
+    public static CommandOutput error(String msg) { return new CommandOutput(msg, false); }
+    public static CommandOutput send(Packet p) { return new CommandOutput(p); }
 }
