@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.securityca.ClientState;
+import com.securityca.FilePaths;
 import com.securityca.crypto.CryptoUtils;
 
 import javax.crypto.SecretKey;
@@ -17,22 +18,18 @@ import java.util.List;
 
 public class ManifestManager {
     private static List<FileEntry> entries;
-    private static final Path DIR = Path.of(System.getProperty("user.home"), ".securityca");
-    private static final Path PATH = DIR.resolve("manifest.bin");
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    private static boolean loaded = false;
+    private static boolean isLoaded = false;
 
     // TODO: Make login and have manifestKey read from there.
     static SecretKey manifestKey = ClientState.getDecryptionKey();
 
     public static void checkManifest() throws IOException, GeneralSecurityException {
-        Files.createDirectories(DIR);
-
-        if(!Files.exists(PATH)) {
+        if(!Files.exists(FilePaths.SERVER_MANIFEST)) {
             IO.println("manifest.bin created.");
             entries = new ArrayList<>();
-            loaded = true;
+            isLoaded = true;
             save();
         } else {
             IO.println("manifest.bin already exists");
@@ -41,19 +38,19 @@ public class ManifestManager {
     }
 
     public static void save() throws IOException, GeneralSecurityException {
-        if(!loaded) throw new IllegalStateException("Manifest not loaded, blocked saving blank manifest");
+        if(!isLoaded) throw new IllegalStateException("Manifest not loaded, blocked saving blank manifest");
 
         String encrypted = CryptoUtils.encrypt(manifestKey, serialize(entries));
-        Path tmp = PATH.resolveSibling("manifest.bin.tmp");
+        Path tmp = FilePaths.SERVER_MANIFEST.resolveSibling("manifest.bin.tmp");
         Files.writeString(tmp, encrypted);
-        Files.move(tmp, PATH, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+        Files.move(tmp, FilePaths.SERVER_MANIFEST, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
     }
 
     public static void load() throws IOException, GeneralSecurityException {
-        String data = Files.readString(PATH);
+        String data = Files.readString(FilePaths.SERVER_MANIFEST);
         byte[] decrypted = CryptoUtils.decrypt(manifestKey, data);
         entries = deserialize(decrypted);
-        loaded = true;
+        isLoaded = true;
     }
 
     public static byte[] serialize(List<FileEntry> entries) throws JsonProcessingException {

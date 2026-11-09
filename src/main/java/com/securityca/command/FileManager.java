@@ -1,6 +1,7 @@
 package com.securityca.command;
 
 import com.securityca.ClientState;
+import com.securityca.FilePaths;
 import com.securityca.crypto.CryptoUtils;
 import com.securityca.network.Packet;
 import com.securityca.network.PacketType;
@@ -30,36 +31,23 @@ public class FileManager {
             IO.println("File has been read successfully!\nSending now...");
             return new CommandOutput(new Packet(PacketType.FILE, encrypted.getBytes(StandardCharsets.UTF_8)));
         } catch (IOException e) {
-            return new CommandOutput("Error reading file " + filename);
+            return new CommandOutput("Error reading file " + filename, false);
         } catch (GeneralSecurityException e) {
-            return new CommandOutput("Error encrypting file " + filename);
+            return new CommandOutput("Error encrypting file " + filename, false);
         }
     }
 
     public static void saveFile(byte[] fileData, String name) {
-        // TODO: This is extremely unsafe in practice and needs to have the path sanitised.
-        Path path = Path.of("storage", name);
+        Path path = Paths.get(FilePaths.SERVER_STORAGE.toString(), name);
         File file = new File(path.toUri());
 
-        OutputStream os = null;
-        try {
-            os = new FileOutputStream(file);
-
-            os.write(fileData);
-
-            IO.println("File was successfully decrypted and saved");
+        try (FileOutputStream fos = new FileOutputStream(file)) {
+            fos.write(fileData);
+            IO.println("File saved from client");
         } catch (FileNotFoundException e) {
             IO.println("The file could not be created: "+ e);
         } catch (IOException e) {
             IO.println("There was a problem saving the file: "+ e);
-        } finally{
-            if (os != null) {
-                try {
-                    os.close();
-                } catch (IOException e) {
-                    IO.println("There was a problem: "+ e);
-                }
-            }
         }
     }
 }

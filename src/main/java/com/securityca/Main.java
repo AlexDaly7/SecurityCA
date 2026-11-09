@@ -1,5 +1,6 @@
 package com.securityca;
 
+import com.securityca.command.FileManager;
 import com.securityca.manifest.ManifestManager;
 import com.securityca.network.MessageManager;
 
@@ -20,7 +21,7 @@ import com.formdev.flatlaf.FlatLightLaf;
 public class Main {
     static void main(String[] args) throws Exception {
         FlatLightLaf.setup();
-
+        FilePaths.setupFilePaths();
 
 
         int port = 5000;

@@ -4,6 +4,7 @@ import com.securityca.command.Command;
 import com.securityca.command.CommandOutput;
 import com.securityca.command.FileManager;
 import com.securityca.crypto.CryptoUtils;
+import com.securityca.manifest.ManifestManager;
 
 import javax.crypto.SecretKey;
 import java.io.BufferedReader;
@@ -17,7 +18,8 @@ import java.util.Map;
 
 public class MessageManager {
     private static final Map<String, Command> commands = Map.of(
-            "FILE", args -> FileManager.readFile(args[0])
+            "FILE", args -> FileManager.readFile(args[0]),
+            "LIST", _ -> new CommandOutput(ManifestManager.getFiles().toString(), true)
     );
 
     private final SecretKey key;
@@ -47,17 +49,6 @@ public class MessageManager {
                 switch (packet.type()) {
                     case MESSAGE -> IO.println("> " + new String(packet.data(), StandardCharsets.UTF_8));
                     case FILE -> {
-//                        ByteBuffer buffer = ByteBuffer.wrap(packet.data());
-//
-//                        // Maybe catch error in case improper sending message.
-//                        byte[] fileName = new byte[buffer.getShort()];
-//                        buffer.get(fileName);
-//
-//                        byte[] fileData = new byte[buffer.remaining()];
-//                        buffer.get(fileData);
-//
-//                        String name = Path.of(new String(fileName, StandardCharsets.UTF_8)).getFileName().toString();
-
                         var digest = MessageDigest.getInstance("SHA-256");
                         var hashName = digest.digest(packet.data());
 
@@ -82,10 +73,14 @@ public class MessageManager {
 
         CommandOutput output = command.run(Arrays.copyOfRange(parts, 1, parts.length));
 
-        if (output.success) {
+        if (output.packet != null) {
             this.send(output.packet);
+        }
+
+        if (output.success) {
+            IO.println(output.message);
         } else {
-            IO.println("Error: " + output);
+            IO.println("Error: " + output.message);
         }
     }
 }
