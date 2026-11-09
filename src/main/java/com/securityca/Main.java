@@ -5,15 +5,14 @@ import com.securityca.manifest.ManifestManager;
 import com.securityca.network.MessageManager;
 
 import javax.crypto.KeyAgreement;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.SocketException;
+import java.io.*;
+import java.net.*;
+import java.nio.channels.ClosedByInterruptException;
+import java.nio.channels.IllegalBlockingModeException;
+import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 import com.formdev.flatlaf.FlatLightLaf;
@@ -75,15 +74,37 @@ public class Main {
 
             String line;
             while ((line = IO.readln()) != null) msgManager.handleOutgoing(line);
-        } catch(SocketException e){
-            IO.println("Error failed connection:" + e);
+        } catch(IllegalArgumentException e){
+            IO.println("Error, given illegal/inapropriate argument:" + e);
+        } catch(NoSuchAlgorithmException e){
+            IO.println("Error, cryptographic algorithm not available:" + e);
+        } catch(NullPointerException e){
+            IO.println("Error, null instead of valid object:" + e);
+        } catch(InvalidKeyException e){
+            IO.println("Error, Invalid key:" + e);
+        } catch(IllegalStateException e){
+            IO.println("Error, method called at illegal time:" + e);
+        } catch(IOException e){
+            IO.println("Error, IO Exception occurred:" + e);
+        } catch(IOError e){
+            IO.println("IO Error:" + e);
         }
     }
 
-    private static Socket listen(int port) throws IOException {
+    private static Socket listen(int port) {
         try (var server = new ServerSocket(port)) {
             IO.print("Waiting for connection on port " + port + "...");
             return server.accept();
+        } catch(IllegalArgumentException e){
+            IO.println("Error, given illegal/inapropriate argument:" + e);
+        } catch(SocketTimeoutException e){
+            IO.println("Error, socket accept timeout:" + e);
+        } catch(IllegalBlockingModeException e){
+            IO.println("Error, unchecked exception on channel in incorrect blocking mode:" + e);
+        } catch(IOException e){
+            IO.println("Error, IO Exception occurred:" + e);
+        } finally {
+            return null;
         }
     }
 }
