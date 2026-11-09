@@ -41,19 +41,25 @@ public class FileManager {
         Path path = Path.of("storage", name);
         File file = new File(path.toUri());
 
+        OutputStream os = null;
         try {
-            OutputStream os = new FileOutputStream(file);
+            os = new FileOutputStream(file);
 
             os.write(fileData);
 
             IO.println("File was successfully decrypted and saved");
-
-            // TODO: Currently os.close() is not called if an exception is thrown, ideally it should.
-            os.close();
         } catch (FileNotFoundException e) {
             IO.println("The file could not be created: "+ e);
         } catch (IOException e) {
             IO.println("There was a problem saving the file: "+ e);
+        } finally{
+            if (os != null) {
+                try {
+                    os.close();
+                } catch (IOException e) {
+                    IO.println("There was a problem: "+ e);
+                }
+            }
         }
     }
 }
