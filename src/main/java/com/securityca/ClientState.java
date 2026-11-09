@@ -11,6 +11,11 @@ import java.security.NoSuchAlgorithmException;
 
 public class ClientState {
     public static SecretKey decryptionKey;
+    public static boolean isServer;
+
+    public static void setIsServer(boolean isServerIn) {
+        isServer = isServerIn;
+    }
 
     public static void setDecryptionKey(String decryptionKey) {
        try {

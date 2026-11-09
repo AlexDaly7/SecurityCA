@@ -22,9 +22,9 @@ public class Main {
         FlatLightLaf.setup();
         FilePaths.setupFilePaths();
 
-
         int port = 5000;
         boolean isServer = args.length == 0;
+        ClientState.setIsServer(isServer);
 
         // TODO: The personal key must be checked using manifest manager, and opportunity for user to retry.
         if (!isServer) {
