@@ -63,7 +63,7 @@ public class Main {
 
             MessageManager msgManager = new MessageManager(sharedSecret, in, out);
 
-            IO.println("Type messages, Ctrl + D or Ctrl + Z on Windows to quit.");
+            IO.println("HELP for commands, Ctrl + D or Ctrl + Z on Windows to quit.");
 
             // Read until message arrives, then decrypt
             Thread.startVirtualThread(() -> {

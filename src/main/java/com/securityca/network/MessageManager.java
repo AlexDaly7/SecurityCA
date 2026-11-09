@@ -4,6 +4,8 @@ import com.securityca.ClientState;
 import com.securityca.command.Command;
 import com.securityca.command.CommandOutput;
 import com.securityca.command.FileManager;
+import com.securityca.command.commands.FileCommand;
+import com.securityca.command.commands.HelpCommand;
 import com.securityca.crypto.CryptoUtils;
 import com.securityca.manifest.ManifestManager;
 
@@ -20,7 +22,8 @@ import java.util.Map;
 
 public class MessageManager {
     private static final Map<String, Command> commands = Map.of(
-            "FILE", args -> FileManager.readFile(args[0])
+            "FILE", args -> new FileCommand().run(args),
+            "HELP", args -> new HelpCommand().run(args)
     );
 
     private final SecretKey key;
@@ -113,10 +116,13 @@ public class MessageManager {
 
         CommandOutput output = command.run(Arrays.copyOfRange(parts, 1, parts.length));
 
-        if (output.success) {
-            this.send(output.packet);
-        } else {
-            IO.println("Error: " + output);
+        if (!output.success) {
+            IO.println("Error: " + output.message);
+            return;
         }
+
+        // Commands may print something locally, send a packet, or both
+        if (output.message != null) IO.println(output.message);
+        if (output.packet != null) this.send(output.packet);
     }
 }
