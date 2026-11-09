@@ -8,6 +8,11 @@ import java.security.GeneralSecurityException;
 
 public class ClientState {
     public static SecretKey decryptionKey;
+    public static boolean isServer;
+
+    public static void setIsServer(boolean isServerIn) {
+        isServer = isServerIn;
+    }
 
     public static void setDecryptionKey(String decryptionKey) throws GeneralSecurityException {
         ClientState.decryptionKey = KDF.getInstance("HKDF-SHA256").deriveKey("AES", HKDFParameterSpec.ofExtract().addIKM(decryptionKey.getBytes(StandardCharsets.UTF_8)).thenExpand("storage v1".getBytes(StandardCharsets.UTF_8), 32));

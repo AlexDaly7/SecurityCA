@@ -19,6 +19,8 @@ import java.util.List;
 public class ManifestManager {
     private static List<FileEntry> entries;
     private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static String lastName;
+    private static boolean expectingAck = false;
 
     private static boolean isLoaded = false;
 
@@ -61,9 +63,23 @@ public class ManifestManager {
         return MAPPER.readValue(data, new TypeReference<>() {});
     }
 
-    public static void saveFile(String id, String name) throws GeneralSecurityException, IOException {
-        entries.add(new FileEntry(id, name));
-        save();
+    public static void expectAck(String name) {
+        lastName = name;
+        expectingAck = true;
+    }
+
+    public static void disregardAck() {
+        lastName = "";
+        expectingAck = false;
+    }
+
+    public static void saveFile(String id) throws GeneralSecurityException, IOException {
+        if(expectingAck) {
+            entries.add(new FileEntry(id, lastName));
+            save();
+            lastName = "";
+            expectingAck = false;
+        }
     }
 
     public static List<FileEntry> getFiles() {

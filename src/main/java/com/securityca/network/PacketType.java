@@ -2,5 +2,6 @@ package com.securityca.network;
 
 public enum PacketType {
     MESSAGE,
-    FILE
+    FILE,
+    FILEACK,
 }
