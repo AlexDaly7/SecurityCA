@@ -9,30 +9,35 @@ import com.securityca.manifest.ManifestManager;
 
 import javax.crypto.SecretKey;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
+import java.nio.ReadOnlyBufferException;
 import java.nio.charset.StandardCharsets;
-import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.HexFormat;
+import java.util.regex.PatternSyntaxException;
 
 public class MessageManager {
+
     private final SecretKey key;
 
     private final BufferedReader in;
     private final PrintWriter out;
 
-    public MessageManager(byte[] sharedSecret,  BufferedReader in, PrintWriter out) throws GeneralSecurityException {
-        this.in = in;
-        this.out = out;
-        // "chat v1" is the label. This is so we can later use one secret for multiple keys to distinguish operations, say once we add file transfer/storage/accession, e.g. "files v1"
-        // Turn into AES key. Done by first taking the raw secret, then "expanding" with our "chat v1" label and producing the 32byte AES key.
-        this.key = CryptoUtils.aesFromSharedSecret(sharedSecret, "chat v1");
+    public MessageManager(byte[] sharedSecret,  BufferedReader in, PrintWriter out) {
+            this.in = in;
+            this.out = out;
+            // "chat v1" is the label. This is so we can later use one secret for multiple keys to distinguish operations, say once we add file transfer/storage/accession, e.g. "files v1"
+            // Turn into AES key. Done by first taking the raw secret, then "expanding" with our "chat v1" label and producing the 32byte AES key.
+            this.key = CryptoUtils.aesFromSharedSecret(sharedSecret, "chat v1");
     }
 
-    public void send(Packet packet) throws GeneralSecurityException {
-        out.println(CryptoUtils.encrypt(key, packet.toBytes()));
+    public void send(Packet packet) {
+            out.println(CryptoUtils.encrypt(key, packet.toBytes()));
     }
 
     public void handleIncoming() {
@@ -92,12 +97,25 @@ public class MessageManager {
                     }
                 }
             }
-        } catch (Exception e) {
-            IO.println("Error:" + e);
+        } catch(IOException e){
+            IO.println("Error, IO Exception occurred:" + e);
+        } catch(ReadOnlyBufferException e){
+            IO.println("Error, Unchecked exception content-mutation method invoked upon read-only buffer:" + e);
+        } catch(UnsupportedOperationException e){
+            IO.println("Error, requested operation not supported:" + e);
+        } catch(BufferOverflowException e){
+            IO.println("Error, Unchecked exception put operation reached target buffer's limit:" + e);
+        } catch(IllegalArgumentException e){
+            IO.println("Error, given illegal/inapropriate argument:" + e);
+        } catch(NoSuchAlgorithmException e){
+            IO.println("Error, cryptographic algorithm not available:" + e);
+        } catch(NullPointerException e){
+            IO.println("Error, null instead of valid object:" + e);
         }
     }
 
-    public void handleOutgoing(String line) throws GeneralSecurityException {
+    public void handleOutgoing(String line) {
+        try{
         var parts = line.split(" ");
 
         Command command = Arrays.stream(Command.values())
@@ -119,5 +137,16 @@ public class MessageManager {
         // Commands may print something locally, send a packet, or both
         if (output.message != null) IO.println(output.message);
         if (output.packet != null) this.send(output.packet);
-    }
+        } catch(PatternSyntaxException e){
+            IO.println("Error, unchecked exception in regular-expression pattern:" + e);
+        } catch(ClassCastException e){
+            IO.println("Error, attempted to cast to a subclass which is not an instance of:" + e);
+        } catch(NullPointerException e){
+            IO.println("Error, null instead of valid object:" + e);
+        }  catch(ArrayIndexOutOfBoundsException e){
+            IO.println("Error, index out of scope of array:" + e);
+        } catch(IllegalArgumentException e){
+            IO.println("Error, given illegal/inapropriate argument:" + e);
+        }
+        }
 }
