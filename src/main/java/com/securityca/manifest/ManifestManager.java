@@ -26,16 +26,17 @@ public class ManifestManager {
     // TODO: Make login and have manifestKey read from there.
     static SecretKey manifestKey = ClientState.getDecryptionKey();
 
-    public static void checkManifest() {
+    public static boolean checkManifest() {
         if (!Files.exists(FilePaths.SERVER_MANIFEST)) {
             IO.println("manifest.bin created.");
             entries = new ArrayList<>();
             isLoaded = true;
             save();
-        } else {
-            IO.println("manifest.bin already exists");
-            load();
+
+            return true;
         }
+
+        return load();
     }
 
     public static void save() {
@@ -63,16 +64,20 @@ public class ManifestManager {
         }
     }
 
-    public static void load() {
+    public static boolean load() {
         try{
             String data = Files.readString(FilePaths.SERVER_MANIFEST);
             byte[] decrypted = CryptoUtils.decrypt(manifestKey, data);
+
             entries = deserialize(decrypted);
             isLoaded = true;
-        } catch(OutOfMemoryError e) {
-            IO.println("Error, Java vm out of memory:" + e);
+
+            return true;
         } catch(IOException e){
             IO.println("Error, IO Exception occurred:" + e);
+            return false;
+        } catch (RuntimeException e) {
+            return false; // decryption failed
         }
     }
 
