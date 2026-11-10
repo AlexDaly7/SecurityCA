@@ -142,4 +142,13 @@ public class ManifestManager {
         IO.println("There was no object in the manifest by the id: "+hex);
         return false;
     }
+
+    public static String getName(String hex) {
+        for(int i=0;i<entries.size();i++) {
+            if(entries.get(i).id().equals(hex)) {
+                return entries.get(i).name();
+            }
+        }
+        return "Unnamed_File";
+    }
 }

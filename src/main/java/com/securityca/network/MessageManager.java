@@ -50,6 +50,16 @@ public class MessageManager {
                     // Client response
                     switch (packet.type()) {
                         case MESSAGE -> IO.println("> " + new String(packet.data(), StandardCharsets.UTF_8));
+                        case FILE -> {
+                            ByteBuffer buffer = ByteBuffer.wrap(packet.data());
+                            byte[] hex = new byte[64];
+                            buffer.get(hex);
+                            byte[] fileData = new byte[buffer.remaining()];
+                            buffer.get(fileData);
+
+                            byte[] unencrypted = CryptoUtils.decrypt(ClientState.getDecryptionKey(), new String(fileData, StandardCharsets.UTF_8));
+                            FileManager.saveFile(unencrypted, ManifestManager.getName(new String(hex, StandardCharsets.UTF_8)));
+                        }
                         case FILEACK -> {
                             ByteBuffer buffer = ByteBuffer.wrap(packet.data());
                             byte[] hashName = new byte[64];
@@ -70,7 +80,7 @@ public class MessageManager {
                             buffer.get(hexBytes);
                             int status = buffer.get();
 
-                            String hexString = new String(hexBytes, StandardCharsets.US_ASCII);
+                            String hexString = new String(hexBytes, StandardCharsets.UTF_8);
 
                             if(status==1) {
                                 ManifestManager.deleteFile(hexString);
@@ -100,7 +110,7 @@ public class MessageManager {
                                 IO.println("File acknowledgement has been set.");
                             } else {
                                 byte[] status = "error".getBytes();
-                                byte[] hex = "x".repeat(64).getBytes(StandardCharsets.US_ASCII);
+                                byte[] hex = "x".repeat(64).getBytes(StandardCharsets.UTF_8);
                                 ByteBuffer buffer = ByteBuffer.allocate(64+status.length)
                                         .put(hex)
                                         .put(status);
