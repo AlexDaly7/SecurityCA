@@ -51,7 +51,7 @@ public class ManifestManager {
         } catch(InvalidPathException e) {
             IO.println("Error, Unchecked exception String cannot be converted to path):" + e);
         } catch(IllegalArgumentException e) {
-            IO.println("Error, given illegal/inapropriate argument:" + e);
+            IO.println("Error, given illegal/inappropriate argument:" + e);
         } catch(UnsupportedOperationException e) {
             IO.println("Error, requested operation not supported:" + e);
         } catch(FileAlreadyExistsException e) {
@@ -122,7 +122,7 @@ public class ManifestManager {
         } catch(NullPointerException e){
              IO.println("Error, null instead of valid object:" + e);
         } catch(IllegalArgumentException e){
-             IO.println("Error, given illegal/inapropriate argument:" + e);
+             IO.println("Error, given illegal/inappropriate argument:" + e);
         }
     }
 

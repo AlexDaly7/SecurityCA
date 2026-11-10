@@ -1,7 +1,12 @@
 package com.securityca.ui;
 
+import com.securityca.ClientState;
+import com.securityca.manifest.ManifestManager;
+
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class LoginUI {
 
@@ -9,13 +14,18 @@ public class LoginUI {
     private JButton loginButton;
     private JLabel PasskeyLabel;
     private JPanel rootPanel;
+    private static JFrame frame;
 
     public static void show() {
-        JFrame frame = new JFrame("LoginUI");
+        frame = new JFrame("LoginUI");
         frame.setContentPane(new LoginUI().rootPanel);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
         frame.setVisible(true);
+    }
+
+    public static void close() {
+        frame.dispose();
     }
 
     {
@@ -51,8 +61,11 @@ public class LoginUI {
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         rootPanel.add(PasskeyField, gbc);
+
+        // Login button
         loginButton = new JButton();
         loginButton.setText("Login");
+
         gbc = new GridBagConstraints();
         gbc.gridx = 1;
         gbc.gridy = 2;
@@ -60,8 +73,11 @@ public class LoginUI {
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         rootPanel.add(loginButton, gbc);
+
+        // Passkey input
         PasskeyLabel = new JLabel();
         PasskeyLabel.setText("Enter Passkey");
+
         gbc = new GridBagConstraints();
         gbc.gridx = 1;
         gbc.gridy = 0;
@@ -69,6 +85,18 @@ public class LoginUI {
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         rootPanel.add(PasskeyLabel, gbc);
+
+        // Button action listener
+        // Might want to change this to be a class (maybe)
+        loginButton.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                ClientState.setDecryptionKey(PasskeyLabel.getText());
+                ManifestManager.checkManifest();
+                close();
+            }
+        });
     }
 
     /**

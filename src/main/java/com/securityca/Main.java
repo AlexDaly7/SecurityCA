@@ -30,11 +30,9 @@ public class Main {
         // TODO: The personal key must be checked using manifest manager, and opportunity for user to retry.
         if (!isServer) {
             SwingUtilities.invokeLater(() -> {
+                // Client should only connect after passkey is verified.
                 LoginUI.show();
             });
-            String decString = IO.readln("Enter your decryption key: ");
-            ClientState.setDecryptionKey(decString);
-            ManifestManager.checkManifest();
         }
 
         // If we're connecting to a device (aka have an IP address arg), connect, otherwise listen
