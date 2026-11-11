@@ -26,17 +26,20 @@ public class LoginUI {
 
         // Button action listener
         // Might want to change this to be a class (maybe)
-        loginButton.addActionListener(_ -> {
-            ClientState.setDecryptionKey(new String(PasskeyField.getPassword()));
+        loginButton.addActionListener(_ -> attemptLogin());
+        PasskeyField.addActionListener(_ -> attemptLogin());
+    }
 
-            if (ManifestManager.checkManifest()) {
-                close();
-            } else {
-                incorrect = incorrect + 1;
-                PasskeyLabel.setText("Wrong passkey, try again (" +  incorrect + ")");
-                PasskeyField.setText("");
-            }
-        });
+    private void attemptLogin() {
+        ClientState.setDecryptionKey(new String(PasskeyField.getPassword()));
+
+        if (ManifestManager.checkManifest()) {
+            close();
+        } else {
+            incorrect = incorrect + 1;
+            PasskeyLabel.setText("Wrong passkey, try again (" +  incorrect + ")");
+            PasskeyField.setText("");
+        }
     }
 
     public static void show() {
@@ -50,6 +53,7 @@ public class LoginUI {
                 System.exit(0);
             }
         });
+        frame.setLocationRelativeTo(null); // center on screen
         frame.pack();
         frame.setVisible(true);
     }
