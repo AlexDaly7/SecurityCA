@@ -16,6 +16,7 @@ public class ChatWindow {
     private JTextField messageInputFld;
     private JButton sendBtn;
     private JTextPane messagesTextPn;
+    private JButton uploadButton;
 
     public static void show(Connection conn) {
         JFrame frame = new JFrame("SecurityCA");
@@ -30,12 +31,21 @@ public class ChatWindow {
     public ChatWindow(Connection conn) {
         showOutputInWindow();
 
-        sendBtn.addActionListener(_ -> {
+        uploadButton.addActionListener(_ -> {
+            JFileChooser chooser = new JFileChooser();
+            int result = chooser.showOpenDialog(rootPanel);
+
+            if (result == JFileChooser.APPROVE_OPTION) {
+                conn.send("FILE " + chooser.getSelectedFile().getAbsolutePath());
+            }
+        });
+
+        messageInputFld.addActionListener(_ -> {
             conn.send(messageInputFld.getText());
             messageInputFld.setText("");
         });
 
-        messageInputFld.addActionListener(_ -> {
+        sendBtn.addActionListener(_ -> {
             conn.send(messageInputFld.getText());
             messageInputFld.setText("");
         });
@@ -86,7 +96,7 @@ public class ChatWindow {
         messageInputFld.setText("");
         GridBagConstraints gbc;
         gbc = new GridBagConstraints();
-        gbc.gridx = 0;
+        gbc.gridx = 2;
         gbc.gridy = 2;
         gbc.gridwidth = 2;
         gbc.weightx = 1.0;
@@ -97,7 +107,7 @@ public class ChatWindow {
         sendBtn.setEnabled(true);
         sendBtn.setText("Send");
         gbc = new GridBagConstraints();
-        gbc.gridx = 3;
+        gbc.gridx = 5;
         gbc.gridy = 2;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         rootPanel.add(sendBtn, gbc);
@@ -105,7 +115,7 @@ public class ChatWindow {
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
-        gbc.gridwidth = 4;
+        gbc.gridwidth = 6;
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
@@ -116,16 +126,29 @@ public class ChatWindow {
         scrollPane1.setViewportView(messagesTextPn);
         final JPanel spacer1 = new JPanel();
         gbc = new GridBagConstraints();
-        gbc.gridx = 1;
-        gbc.gridy = 1;
+        gbc.gridx = 4;
+        gbc.gridy = 2;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         rootPanel.add(spacer1, gbc);
+        uploadButton = new JButton();
+        uploadButton.setText("Upload");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        rootPanel.add(uploadButton, gbc);
         final JPanel spacer2 = new JPanel();
         gbc = new GridBagConstraints();
-        gbc.gridx = 2;
+        gbc.gridx = 1;
         gbc.gridy = 2;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         rootPanel.add(spacer2, gbc);
+        final JPanel spacer3 = new JPanel();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 3;
+        gbc.gridy = 1;
+        gbc.fill = GridBagConstraints.VERTICAL;
+        rootPanel.add(spacer3, gbc);
     }
 
     /**

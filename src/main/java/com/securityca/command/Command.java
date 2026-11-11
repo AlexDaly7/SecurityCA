@@ -1,5 +1,6 @@
 package com.securityca.command;
 
+import com.securityca.manifest.ManifestManager;
 import com.securityca.network.MessageManager;
 import com.securityca.network.Packet;
 import com.securityca.network.PacketType;
@@ -10,8 +11,9 @@ import java.util.stream.Collectors;
 
 public enum Command {
     FILE("<path>", "upload a file", args -> args.length == 0 ? CommandOutput.error("Usage: FILE <path>") : FileManager.readFile(args[0])),
-    HELP("", "show this message", _ -> CommandOutput.print(helpText())),
-    DELETE("<path>", "delete a file", args -> args.length == 0 ? CommandOutput.error("Usage: DELETE <fileID>") : CommandOutput.send(new Packet(PacketType.DELETE, args[0].getBytes())));
+    LIST("", "list uploaded files", _ -> CommandOutput.print(listText())),
+    DELETE("<path>", "delete a file", args -> args.length == 0 ? CommandOutput.error("Usage: DELETE <fileID>") : CommandOutput.send(new Packet(PacketType.DELETE, args[0].getBytes()))),
+    HELP("", "show this message", _ -> CommandOutput.print(helpText()));
 
     private final String usage;
     private final String description;
@@ -28,6 +30,15 @@ public enum Command {
     private static String helpText() {
         return "Commands:\n" + Arrays.stream(values())
                 .map(c -> "    %-12s - %s".formatted(c.name() + " " + c.usage, c.description))
+                .collect(Collectors.joining("\n"));
+    }
+
+    private static String listText() {
+        var files = ManifestManager.getFiles();
+        if (files.isEmpty()) return "No files uploaded.";
+
+        return files.stream()
+                .map(f -> f.id() + " " + f.name())
                 .collect(Collectors.joining("\n"));
     }
 }

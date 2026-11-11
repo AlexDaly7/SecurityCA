@@ -19,8 +19,11 @@ import java.util.List;
 public class FileManager {
     public static CommandOutput readFile(String filename) {
         try {
-            var file = Files.readAllBytes(Paths.get(filename));
-            var nameBytes = filename.getBytes();
+            Path filePath = Paths.get(filename);
+            var file = Files.readAllBytes(filePath);
+
+            String name = filePath.getFileName().toString();
+            var nameBytes = name.getBytes();
 
             byte[] data = ByteBuffer.allocate(2+nameBytes.length+file.length)
                     .putShort((short) nameBytes.length)
@@ -34,7 +37,7 @@ public class FileManager {
 
             // Manifest manager must be told to expect the coming acknowledgement from here
             // To pass the filename to be added to the manifest.
-            ManifestManager.expectAck(filename);
+            ManifestManager.expectAck(name);
 
             return CommandOutput.send(new Packet(PacketType.FILE, encrypted.getBytes(StandardCharsets.UTF_8)));
         } catch (IOException e) {

@@ -156,7 +156,7 @@ public class MessageManager {
 
     public void handleOutgoing(String line) {
         try{
-            var parts = line.split(" ");
+            var parts = line.split(" ", 2);
 
             Command command = Arrays.stream(Command.values())
                     .filter(c -> c.name().equals(parts[0]))
