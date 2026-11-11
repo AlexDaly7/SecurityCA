@@ -6,14 +6,8 @@ import javax.swing.*;
 import java.awt.*;
 
 public class FileEntry extends JPanel {
-    private final String filename;
-    private final String filehash;
-
     public FileEntry(Connection conn, String filename, String filehash) {
         super(new BorderLayout());
-
-        this.filename = filename;
-        this.filehash = filehash;
 
         add(new JLabel(filename),  BorderLayout.WEST);
         setToolTipText(filehash);
