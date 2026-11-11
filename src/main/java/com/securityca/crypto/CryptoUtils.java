@@ -1,8 +1,12 @@
 package com.securityca.crypto;
 
+import org.bouncycastle.crypto.generators.Argon2BytesGenerator;
+import org.bouncycastle.crypto.params.Argon2Parameters;
+
 import javax.crypto.*;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.HKDFParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import java.security.*;
 import java.util.Base64;
 import java.util.regex.PatternSyntaxException;
@@ -100,5 +104,21 @@ public class CryptoUtils {
         } catch(IllegalArgumentException e){
             throw new RuntimeException("Error, given illegal/inapropriate argument:" + e);
         }
+    }
+
+    public static SecretKey keyFromPassword(char[] password, byte[] salt) {
+        var params = new Argon2Parameters.Builder(Argon2Parameters.ARGON2_id)
+                .withVersion(Argon2Parameters.ARGON2_VERSION_13)
+                .withSalt(salt)
+                .withMemoryAsKB(65536) // 64 MB
+                .withIterations(3)
+                .withParallelism(1)
+                .build();
+
+        var gen = new Argon2BytesGenerator();
+        gen.init(params);
+        byte[] out = new byte[32];
+        gen.generateBytes(password, out);
+        return new SecretKeySpec(out, "AES");
     }
 }

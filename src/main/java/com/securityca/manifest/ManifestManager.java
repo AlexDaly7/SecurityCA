@@ -12,7 +12,9 @@ import com.securityca.crypto.CryptoUtils;
 import javax.crypto.SecretKey;
 import java.io.IOException;
 import java.nio.file.*;
+import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 
 public class ManifestManager {
@@ -25,21 +27,37 @@ public class ManifestManager {
 
     private static Runnable onChange = () -> {};
 
+    private static byte[] salt;
+
     public static void setOnChange(Runnable r) {
         onChange = r;
     }
 
-    public static boolean checkManifest() {
-        if (!Files.exists(FilePaths.CLIENT_MANIFEST)) {
-            IO.println("manifest.bin created.");
-            entries = new ArrayList<>();
+    public static boolean unlock(char[] password) {
+        try {
+            boolean exists = Files.exists(FilePaths.CLIENT_MANIFEST);
+            String packet = "";
+
+            if (exists) {
+                IO.println("Checking manifest");
+                String[] parts = Files.readString(FilePaths.CLIENT_MANIFEST).split(" ", 2);
+
+                salt = Base64.getDecoder().decode(parts[0]);
+                packet = parts[1];
+            } else {
+                IO.println("Creating new manifest");
+                salt = new byte[16];
+                new SecureRandom().nextBytes(salt);
+            }
+
+            ClientState.setDecryptionKey(CryptoUtils.keyFromPassword(password, salt));
+            entries = exists ? deserialize(CryptoUtils.decrypt(ClientState.getDecryptionKey(), packet)) : new ArrayList<>();
             isLoaded = true;
-            save();
-
+            if (!exists) save();
             return true;
+        } catch (IOException | RuntimeException _e) {
+            return false;
         }
-
-        return load();
     }
 
     public static void save() {
@@ -48,7 +66,7 @@ public class ManifestManager {
 
             String encrypted = CryptoUtils.encrypt(ClientState.getDecryptionKey(), serialize(entries));
             Path tmp = FilePaths.CLIENT_MANIFEST.resolveSibling("manifest.bin.tmp");
-            Files.writeString(tmp, encrypted);
+            Files.writeString(tmp, Base64.getEncoder().encodeToString(salt) + " " + encrypted);
             Files.move(tmp, FilePaths.CLIENT_MANIFEST, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
         } catch(JsonProcessingException e) {
             IO.println("Error processing JSON(not just IO):" + e);
@@ -64,23 +82,6 @@ public class ManifestManager {
             IO.println("Error, Directory not empty:" + e);
         } catch(IOException e) {
             IO.println("Error, IO Exception occurred:" + e);
-        }
-    }
-
-    public static boolean load() {
-        try{
-            String data = Files.readString(FilePaths.CLIENT_MANIFEST);
-            byte[] decrypted = CryptoUtils.decrypt(ClientState.getDecryptionKey(), data);
-
-            entries = deserialize(decrypted);
-            isLoaded = true;
-
-            return true;
-        } catch(IOException e){
-            IO.println("Error, IO Exception occurred:" + e);
-            return false;
-        } catch (RuntimeException e) {
-            return false; // decryption failed
         }
     }
 

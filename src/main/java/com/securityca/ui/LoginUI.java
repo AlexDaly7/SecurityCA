@@ -7,6 +7,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.nio.charset.StandardCharsets;
 
 public class LoginUI {
 
@@ -29,9 +30,7 @@ public class LoginUI {
     }
 
     private void attemptLogin() {
-        ClientState.setDecryptionKey(new String(PasskeyField.getPassword()));
-
-        if (ManifestManager.checkManifest()) {
+        if (ManifestManager.unlock(PasskeyField.getPassword())) {
             close();
         } else {
             incorrect = incorrect + 1;
