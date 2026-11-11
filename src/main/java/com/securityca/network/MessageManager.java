@@ -11,9 +11,7 @@ import javax.swing.filechooser.FileSystemView;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
-import java.nio.ReadOnlyBufferException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -182,20 +180,8 @@ public class MessageManager {
                     }
                 }
             }
-        } catch(IOException e){
+        } catch(IOException | NoSuchAlgorithmException e){
             IO.println("Error, IO Exception occurred:" + e);
-        } catch(ReadOnlyBufferException e) {
-            IO.println("Error, Unchecked exception content-mutation method invoked upon read-only buffer:" + e);
-        } catch(UnsupportedOperationException e) {
-            IO.println("Error, requested operation not supported:" + e);
-        } catch(BufferOverflowException e) {
-            IO.println("Error, Unchecked exception put operation reached target buffer's limit:" + e);
-        } catch(IllegalArgumentException e) {
-            IO.println("Error, given illegal/inapropriate argument:" + e);
-        } catch(NoSuchAlgorithmException e) {
-            IO.println("Error, cryptographic algorithm not available:" + e);
-        } catch(NullPointerException e) {
-            IO.println("Error, null instead of valid object:" + e);
         }
     }
 }

@@ -20,7 +20,7 @@ public class FileEntry extends JPanel {
         var deleteButton = new JButton("Delete");
         buttons.add(deleteButton, BorderLayout.EAST);
 
-        var requestButton = new JButton("Request");
+        var requestButton = new JButton("Download");
         buttons.add(requestButton, BorderLayout.WEST);
 
         add(buttons, BorderLayout.EAST);
