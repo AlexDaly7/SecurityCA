@@ -1,12 +1,15 @@
 package com.securityca.ui;
 
+import com.securityca.command.FileManager;
 import com.securityca.manifest.ManifestManager;
 import com.securityca.network.Connection;
+import com.securityca.network.PacketType;
 import com.securityca.ui.components.FileEntry;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
+import java.io.IOException;
 
 public class ChatWindow {
     private JPanel rootPanel;
@@ -40,7 +43,11 @@ public class ChatWindow {
             boolean exists = ManifestManager.getFiles().stream()
                     .anyMatch(entry -> entry.name().equals(file.getName()));
 
-            conn.send((exists ? "FILEUPDATE " : "FILE ") + file.getAbsolutePath());
+            try {
+                conn.send(FileManager.readFile(file.toPath(), exists ? PacketType.FILEUPDATE : PacketType.FILE));
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(rootPanel, "Could not read " + file.getName());
+            }
         });
 
         ManifestManager.setOnChange(() -> {

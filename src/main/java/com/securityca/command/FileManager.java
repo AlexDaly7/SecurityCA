@@ -14,59 +14,23 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.stream.Stream;
 
 public class FileManager {
-    public static CommandOutput readFile(String filename) {
-        try {
-            Path filePath = Paths.get(filename);
-            var file = Files.readAllBytes(filePath);
+    public static Packet readFile(Path filePath, PacketType packetType) throws IOException {
+        var file = Files.readAllBytes(filePath);
+        String name = filePath.getFileName().toString();
+        var nameBytes = name.getBytes(StandardCharsets.UTF_8);
 
-            String name = filePath.getFileName().toString();
-            var nameBytes = name.getBytes();
+        byte[] data = ByteBuffer.allocate(2 + nameBytes.length + file.length)
+                .putShort((short) nameBytes.length)
+                .put(nameBytes)
+                .put(file)
+                .array();
 
-            byte[] data = ByteBuffer.allocate(2+nameBytes.length+file.length)
-                    .putShort((short) nameBytes.length)
-                    .put(nameBytes)
-                    .put(file)
-                    .array();
-
-            String encrypted = CryptoUtils.encrypt(ClientState.getDecryptionKey(), data);
-
-            IO.println("File has been read successfully!\nSending now...");
-
-            // Manifest manager must be told to expect the coming acknowledgement from here
-            // To pass the filename to be added to the manifest.
-            ManifestManager.expectAck(name);
-
-            return CommandOutput.send(new Packet(PacketType.FILE, encrypted.getBytes(StandardCharsets.UTF_8)));
-        } catch (IOException e) {
-            return CommandOutput.error("Error reading file " + filename);
-        }
-    }
-
-    public static CommandOutput readFileUpdate(String filename) {
-        try {
-            Path filePath = Paths.get(filename);
-            var file = Files.readAllBytes(filePath);
-
-            String name = filePath.getFileName().toString();
-            var nameBytes = name.getBytes();
-
-            byte[] data = ByteBuffer.allocate(2+nameBytes.length+file.length)
-                    .putShort((short) nameBytes.length)
-                    .put(nameBytes)
-                    .put(file)
-                    .array();
-
-            String encrypted = CryptoUtils.encrypt(ClientState.getDecryptionKey(), data);
-
-            IO.println("File has been read successfully!\nSending now...");
-
-            return CommandOutput.send(new Packet(PacketType.FILEUPDATE, encrypted.getBytes(StandardCharsets.UTF_8)));
-        } catch (IOException e) {
-            return CommandOutput.error("Error reading file " + filename);
-        }
+        IO.println("File has been read successfully!\nSending now...");
+        String encrypted = CryptoUtils.encrypt(ClientState.getDecryptionKey(), data);
+        if (packetType == PacketType.FILE) ManifestManager.expectAck(name);
+        return new Packet(packetType, encrypted.getBytes(StandardCharsets.UTF_8));
     }
 
 

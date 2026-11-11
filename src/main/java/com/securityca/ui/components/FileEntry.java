@@ -1,9 +1,12 @@
 package com.securityca.ui.components;
 
 import com.securityca.network.Connection;
+import com.securityca.network.Packet;
+import com.securityca.network.PacketType;
 
 import javax.swing.*;
 import java.awt.*;
+import java.nio.charset.StandardCharsets;
 
 public class FileEntry extends JPanel {
     public FileEntry(Connection conn, String filename, String filehash) {
@@ -22,13 +25,13 @@ public class FileEntry extends JPanel {
 
         add(buttons, BorderLayout.EAST);
 
-        deleteButton.addActionListener(_ -> {
-            conn.send("DELETE " + filehash);
-        });
+        deleteButton.addActionListener(_ ->
+                conn.send(new Packet(PacketType.DELETE, filehash.getBytes(StandardCharsets.UTF_8)))
+        );
 
-        requestButton.addActionListener(_ -> {
-            conn.send("FILEREQUEST " + filehash);
-        });
+        requestButton.addActionListener(_ ->
+            conn.send(new Packet(PacketType.FILEREQUEST, filehash.getBytes(StandardCharsets.UTF_8)))
+        );
 
         setAlignmentX(LEFT_ALIGNMENT);
     }

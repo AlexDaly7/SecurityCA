@@ -41,7 +41,7 @@ public final class Connection {
 
     public void close() throws IOException { socket.close(); }
 
-    public void send(String line) { messages.handleOutgoing(line); }
+    public void send(Packet packet) { messages.send(packet); }
 
     private static Connection open(Socket socket, String serverCode) throws IOException, GeneralSecurityException {
         try {

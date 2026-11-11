@@ -1,8 +1,6 @@
 package com.securityca.network;
 
 import com.securityca.ClientState;
-import com.securityca.command.Command;
-import com.securityca.command.CommandOutput;
 import com.securityca.command.FileManager;
 import com.securityca.crypto.CryptoUtils;
 import com.securityca.manifest.ManifestManager;
@@ -11,7 +9,6 @@ import javax.crypto.SecretKey;
 import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.BufferOverflowException;
@@ -20,9 +17,7 @@ import java.nio.ReadOnlyBufferException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 import java.util.HexFormat;
-import java.util.regex.PatternSyntaxException;
 
 public class MessageManager {
 
@@ -201,42 +196,6 @@ public class MessageManager {
             IO.println("Error, cryptographic algorithm not available:" + e);
         } catch(NullPointerException e) {
             IO.println("Error, null instead of valid object:" + e);
-        }
-    }
-
-    public void handleOutgoing(String line) {
-        try{
-            var parts = line.split(" ", 2);
-
-            Command command = Arrays.stream(Command.values())
-                    .filter(c -> c.name().equals(parts[0]))
-                    .findFirst().orElse(null);
-
-            if (command == null) {
-                this.send(new Packet(PacketType.MESSAGE, line.getBytes(StandardCharsets.UTF_8)));
-                return;
-            }
-
-            CommandOutput output = command.run(Arrays.copyOfRange(parts, 1, parts.length));
-
-            if (!output.success) {
-                IO.println("Error: " + output.message);
-                return;
-            }
-
-            // Commands may print something locally, send a packet, or both
-            if (output.message != null) IO.println(output.message);
-            if (output.packet != null) this.send(output.packet);
-        } catch(PatternSyntaxException e){
-            IO.println("Error, unchecked exception in regular-expression pattern:" + e);
-        } catch(ClassCastException e){
-            IO.println("Error, attempted to cast to a subclass which is not an instance of:" + e);
-        } catch(NullPointerException e){
-            IO.println("Error, null instead of valid object:" + e);
-        }  catch(ArrayIndexOutOfBoundsException e){
-            IO.println("Error, index out of scope of array:" + e);
-        } catch(IllegalArgumentException e){
-            IO.println("Error, given illegal/inapropriate argument:" + e);
         }
     }
 }
