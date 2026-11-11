@@ -13,8 +13,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class FileManager {
     public static CommandOutput readFile(String filename) {
@@ -62,6 +62,22 @@ public class FileManager {
         return false;
     }
 
+    public static boolean saveFileWithPath(byte[] fileData, String name, String strPath) {
+        Path path = Path.of(strPath, name);
+        File file = new File(path.toUri());
+
+        try (FileOutputStream fos = new FileOutputStream(file)) {
+            fos.write(fileData);
+            IO.println("File saved from server");
+            return true;
+        } catch (FileNotFoundException e) {
+            IO.println("The file could not be created: "+ e);
+        } catch (IOException e) {
+            IO.println("There was a problem saving the file: "+ e);
+        }
+        return false;
+    }
+
     // The two functions below are for the server only,
     // TODO: Consider moving these function to a separate files
     public static boolean deleteFile(String hex) {
@@ -87,6 +103,21 @@ public class FileManager {
             IO.println("Error getting file list.");
         }
         return List.of();
+    }
+
+    public static byte[] getFile(String hex) {
+        try {
+            List<Path> files = Files.list(FilePaths.SERVER_STORAGE).toList();
+
+            for (Path file : files) {
+                if (file.getFileName().toString().equals(hex + ".dat")) {
+                    return Files.readAllBytes(file);
+                }
+            }
+        } catch (IOException e) {
+            IO.println("Error finding file");
+        }
+        return new byte[0];
     }
 
 

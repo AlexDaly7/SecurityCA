@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ManifestManager {
-    private static List<FileEntry> entries;
+    private static List<FileEntry> entries = new ArrayList<>();
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static String lastName;
     private static boolean expectingAck = false;

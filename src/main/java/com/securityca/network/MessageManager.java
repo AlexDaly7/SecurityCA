@@ -8,7 +8,10 @@ import com.securityca.crypto.CryptoUtils;
 import com.securityca.manifest.ManifestManager;
 
 import javax.crypto.SecretKey;
+import javax.swing.*;
+import javax.swing.filechooser.FileSystemView;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.BufferOverflowException;
@@ -52,20 +55,37 @@ public class MessageManager {
                         case MESSAGE -> IO.println("> " + new String(packet.data(), StandardCharsets.UTF_8));
                         case FILE -> {
                             ByteBuffer buffer = ByteBuffer.wrap(packet.data());
-                            byte[] hex = new byte[64];
-                            buffer.get(hex);
-                            byte[] fileData = new byte[buffer.remaining()];
-                            buffer.get(fileData);
 
-                            byte[] unencrypted = CryptoUtils.decrypt(ClientState.getDecryptionKey(), new String(fileData, StandardCharsets.UTF_8));
-                            FileManager.saveFile(unencrypted, ManifestManager.getName(new String(hex, StandardCharsets.UTF_8)));
+                            JFileChooser chooser = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());
+                            chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+
+                            int result = chooser.showSaveDialog(null);
+
+                            if(result == JFileChooser.APPROVE_OPTION) {
+
+                                byte[] hexData = new byte[64];
+                                buffer.get(hexData);
+                                byte[] fileData = new byte[buffer.remaining()];
+                                buffer.get(fileData);
+
+                                String hex = new String(hexData, StandardCharsets.UTF_8);
+
+                                byte[] unencrypted = CryptoUtils.decrypt(ClientState.getDecryptionKey(), new String(fileData, StandardCharsets.UTF_8));
+                                FileManager.saveFileWithPath(unencrypted, ManifestManager.getName(hex), chooser.getSelectedFile().toString());
+                            }
                         }
                         case FILEACK -> {
                             ByteBuffer buffer = ByteBuffer.wrap(packet.data());
+
+                            if(buffer.remaining()==64) {
+                                IO.println("There was a problem request the file from the server");
+                            }
+
                             byte[] hashName = new byte[64];
                             buffer.get(hashName);
                             byte[] status = new byte[buffer.remaining()];
                             buffer.get(status);
+
                             if(new String(status).equals("success")) {
                                 IO.println("ACK SUCCESS");
                                 ManifestManager.saveFile(new String(hashName));
@@ -116,6 +136,22 @@ public class MessageManager {
                                         .put(status);
                                 this.send(new Packet(PacketType.FILEACK, buffer.array()));
                             }
+                        }
+                        case FILEREQUEST -> {
+                            ByteBuffer buffer = ByteBuffer.wrap(packet.data());
+                            byte[] hexData = new byte[64];
+                            buffer.get(hexData);
+                            String hex = new String(hexData, StandardCharsets.UTF_8);
+
+                            byte[] file = FileManager.getFile(hex);
+                            buffer.clear();
+                            buffer = ByteBuffer.allocate(64+file.length);
+                            buffer.put(hexData);
+                            buffer.put(file);
+                            this.send(new Packet(PacketType.FILE, buffer.array()));
+
+
+
                         }
                         case DELETE -> {
                             ByteBuffer buffer = ByteBuffer.wrap(packet.data());

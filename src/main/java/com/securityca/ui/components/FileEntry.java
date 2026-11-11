@@ -12,11 +12,22 @@ public class FileEntry extends JPanel {
         add(new JLabel(filename),  BorderLayout.WEST);
         setToolTipText(filehash);
 
+        JPanel buttons = new JPanel(new FlowLayout());
+
         var deleteButton = new JButton("Delete");
-        add(deleteButton, BorderLayout.EAST);
+        buttons.add(deleteButton, BorderLayout.EAST);
+
+        var requestButton = new JButton("Request");
+        buttons.add(requestButton, BorderLayout.WEST);
+
+        add(buttons, BorderLayout.EAST);
 
         deleteButton.addActionListener(_ -> {
             conn.send("DELETE " + filehash);
+        });
+
+        requestButton.addActionListener(_ -> {
+            conn.send("FILEREQUEST " + filehash);
         });
 
         setAlignmentX(LEFT_ALIGNMENT);
