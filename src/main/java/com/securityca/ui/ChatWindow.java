@@ -7,7 +7,6 @@ import javax.swing.border.TitledBorder;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import java.awt.*;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
@@ -31,7 +30,12 @@ public class ChatWindow {
     public ChatWindow(Connection conn) {
         showOutputInWindow();
 
-        sendBtn.addActionListener(e -> {
+        sendBtn.addActionListener(_ -> {
+            conn.send(messageInputFld.getText());
+            messageInputFld.setText("");
+        });
+
+        messageInputFld.addActionListener(_ -> {
             conn.send(messageInputFld.getText());
             messageInputFld.setText("");
         });
@@ -43,12 +47,12 @@ public class ChatWindow {
         // https://stackoverflow.com/a/33631139 on doing custom output streams
         System.setOut(new PrintStream(new OutputStream() {
             @Override
-            public void write(int b) throws IOException {
+            public void write(int b) {
                 write(new byte[]{(byte) b}, 0, 1);
             }
 
             @Override
-            public void write(byte[] buffer, int off, int len) throws IOException {
+            public void write(byte[] buffer, int off, int len) {
                 String text = new String(buffer, off, len, StandardCharsets.UTF_8);
                 SwingUtilities.invokeLater(() -> {
                     try {
