@@ -1,22 +1,20 @@
 package com.securityca.ui;
 
+import com.securityca.manifest.ManifestManager;
 import com.securityca.network.Connection;
+import com.securityca.ui.components.FileEntry;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
 import java.awt.*;
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.nio.charset.StandardCharsets;
 
 public class ChatWindow {
     private JPanel rootPanel;
-    private JTextField messageInputFld;
-    private JButton sendBtn;
-    private JTextPane messagesTextPn;
     private JButton uploadButton;
+    private JScrollPane filesPane;
+    private JPanel filesList;
+
+    private final Connection conn;
 
     public static void show(Connection conn) {
         JFrame frame = new JFrame("SecurityCA");
@@ -29,7 +27,10 @@ public class ChatWindow {
     }
 
     public ChatWindow(Connection conn) {
-        showOutputInWindow();
+        this.conn = conn;
+
+        filesList.setLayout(new BoxLayout(filesList, BoxLayout.Y_AXIS));
+        this.loadFiles();
 
         uploadButton.addActionListener(_ -> {
             JFileChooser chooser = new JFileChooser();
@@ -40,38 +41,25 @@ public class ChatWindow {
             }
         });
 
-        messageInputFld.addActionListener(_ -> {
-            conn.send(messageInputFld.getText());
-            messageInputFld.setText("");
-        });
-
-        sendBtn.addActionListener(_ -> {
-            conn.send(messageInputFld.getText());
-            messageInputFld.setText("");
+        ManifestManager.setOnChange(() -> {
+            SwingUtilities.invokeLater(this::loadFiles);
         });
     }
 
-    private void showOutputInWindow() {
-        Document doc = messagesTextPn.getDocument();
+    private void loadFiles() {
+        filesList.removeAll();
+        var files = ManifestManager.getFiles();
 
-        // https://stackoverflow.com/a/33631139 on doing custom output streams
-        System.setOut(new PrintStream(new OutputStream() {
-            @Override
-            public void write(int b) {
-                write(new byte[]{(byte) b}, 0, 1);
+        if (files.isEmpty()) {
+            filesList.add(new JLabel("No files found."));
+        } else {
+            for (var fileEntry : files) {
+                filesList.add(new FileEntry(conn, fileEntry.name(), fileEntry.id()));
             }
+        }
 
-            @Override
-            public void write(byte[] buffer, int off, int len) {
-                String text = new String(buffer, off, len, StandardCharsets.UTF_8);
-                SwingUtilities.invokeLater(() -> {
-                    try {
-                        doc.insertString(doc.getLength(), text, null);
-                    } catch (BadLocationException _) {
-                    }
-                });
-            }
-        }, true, StandardCharsets.UTF_8));
+        filesList.revalidate();
+        filesList.repaint();
     }
 
     {
@@ -92,26 +80,8 @@ public class ChatWindow {
         rootPanel = new JPanel();
         rootPanel.setLayout(new GridBagLayout());
         rootPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10), null, TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
-        messageInputFld = new JTextField();
-        messageInputFld.setText("");
+        filesPane = new JScrollPane();
         GridBagConstraints gbc;
-        gbc = new GridBagConstraints();
-        gbc.gridx = 2;
-        gbc.gridy = 2;
-        gbc.gridwidth = 2;
-        gbc.weightx = 1.0;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        rootPanel.add(messageInputFld, gbc);
-        sendBtn = new JButton();
-        sendBtn.setEnabled(true);
-        sendBtn.setText("Send");
-        gbc = new GridBagConstraints();
-        gbc.gridx = 5;
-        gbc.gridy = 2;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        rootPanel.add(sendBtn, gbc);
-        final JScrollPane scrollPane1 = new JScrollPane();
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -119,17 +89,10 @@ public class ChatWindow {
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
-        rootPanel.add(scrollPane1, gbc);
-        messagesTextPn = new JTextPane();
-        messagesTextPn.setEditable(false);
-        messagesTextPn.setText("");
-        scrollPane1.setViewportView(messagesTextPn);
-        final JPanel spacer1 = new JPanel();
-        gbc = new GridBagConstraints();
-        gbc.gridx = 4;
-        gbc.gridy = 2;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        rootPanel.add(spacer1, gbc);
+        rootPanel.add(filesPane, gbc);
+        filesList = new JPanel();
+        filesList.setLayout(new BorderLayout(0, 0));
+        filesPane.setViewportView(filesList);
         uploadButton = new JButton();
         uploadButton.setText("Upload");
         gbc = new GridBagConstraints();
@@ -137,18 +100,12 @@ public class ChatWindow {
         gbc.gridy = 2;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         rootPanel.add(uploadButton, gbc);
-        final JPanel spacer2 = new JPanel();
+        final JPanel spacer1 = new JPanel();
         gbc = new GridBagConstraints();
-        gbc.gridx = 1;
-        gbc.gridy = 2;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        rootPanel.add(spacer2, gbc);
-        final JPanel spacer3 = new JPanel();
-        gbc = new GridBagConstraints();
-        gbc.gridx = 3;
+        gbc.gridx = 0;
         gbc.gridy = 1;
         gbc.fill = GridBagConstraints.VERTICAL;
-        rootPanel.add(spacer3, gbc);
+        rootPanel.add(spacer1, gbc);
     }
 
     /**

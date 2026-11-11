@@ -23,6 +23,12 @@ public class ManifestManager {
 
     private static boolean isLoaded = false;
 
+    private static Runnable onChange = () -> {};
+
+    public static void setOnChange(Runnable r) {
+        onChange = r;
+    }
+
     public static boolean checkManifest() {
         if (!Files.exists(FilePaths.CLIENT_MANIFEST)) {
             IO.println("manifest.bin created.");
@@ -114,6 +120,7 @@ public class ManifestManager {
             if(expectingAck) {
                 entries.add(new FileEntry(id, lastName));
                 save();
+                onChange.run();
                 lastName = "";
                 expectingAck = false;
             }
@@ -136,7 +143,8 @@ public class ManifestManager {
         for(int i=0;i<entries.size();i++) {
             if(entries.get(i).id().equals(hex)) {
                 entries.remove(i);
-
+                save();
+                onChange.run();
                 IO.println("The file "+hex+" was deleted.");
                 return true;
             }
