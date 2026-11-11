@@ -19,14 +19,46 @@ public class Main {
         boolean isServer = args.length == 0;
         ClientState.setIsServer(isServer);
 
+        if (isServer) {
+            runServer();
+        } else {
+            runClient(args[0]);
+        }
+    }
+
+    private static void runServer() {
+        try (var server = new ServerSocket(PORT)) {
+            while (true) {
+                IO.println("Waiting for new connection on port " + PORT + "...");
+
+                try {
+                    var conn = Connection.accept(server);
+
+                    // finally ensures we still close cleanly even if en error occurs
+                    try {
+                        conn.handleUntilDisconnect();
+                    } finally {
+                        conn.close();
+                    }
+
+                    IO.println("Client disconnected.");
+                } catch (GeneralSecurityException e) {
+                    IO.println("Client connection failed: " + e.getMessage());
+                } catch (RuntimeException e) {
+                    IO.println("Client sent invalid data, closing connection: " + e.getMessage());
+                }
+            }
+        } catch (IOException e) {
+            IO.println("Could not start sever: " + e.getMessage());
+        }
+    }
+
+    private static void runClient(String serverIp) {
         try {
             Connection conn;
-            if (isServer) {
-                conn = Connection.listen(PORT);
-            } else {
-                LoginUI.show();
-                conn = Connection.connect(args[0], PORT);
-            }
+
+            LoginUI.show();
+            conn = Connection.connect(serverIp, PORT);
 
             conn.start(() -> {
                 IO.println("Disconnected.");
@@ -44,5 +76,6 @@ public class Main {
         } catch (GeneralSecurityException e) {
             IO.println("Secure handshake failed: " + e.getMessage());
         }
+
     }
 }

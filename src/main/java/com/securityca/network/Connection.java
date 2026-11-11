@@ -17,11 +17,12 @@ public final class Connection {
         this.messages = messages;
     }
 
-    public static Connection listen(int port) throws IOException, GeneralSecurityException {
-        try (var server = new ServerSocket(port)) {
-            IO.println("Waiting for connection on port " + port + "...");
-            return open(server.accept());
-        }
+    public static Connection accept(ServerSocket server) throws IOException, GeneralSecurityException {
+        return open(server.accept());
+    }
+
+    public void handleUntilDisconnect() {
+        messages.handleIncoming();
     }
 
     public static Connection connect(String host, int port) throws IOException, GeneralSecurityException {
@@ -30,8 +31,11 @@ public final class Connection {
 
     public void start(Runnable onDisconnect) {
         Thread.startVirtualThread(() -> {
-            messages.handleIncoming();
-            onDisconnect.run();
+            try {
+                messages.handleIncoming();
+            } finally {
+                onDisconnect.run();
+            }
         });
     }
 
