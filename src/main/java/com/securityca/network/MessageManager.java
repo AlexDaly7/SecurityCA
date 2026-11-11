@@ -71,7 +71,16 @@ public class MessageManager {
                                 String hex = new String(hexData, StandardCharsets.UTF_8);
 
                                 byte[] unencrypted = CryptoUtils.decrypt(ClientState.getDecryptionKey(), new String(fileData, StandardCharsets.UTF_8));
-                                FileManager.saveFileWithPath(unencrypted, ManifestManager.getName(hex), chooser.getSelectedFile().toString());
+                                ByteBuffer fileBuffer = ByteBuffer.wrap(unencrypted);
+
+                                short nameLength = fileBuffer.getShort();
+                                byte[] name = new byte[nameLength];
+                                fileBuffer.get(name);
+
+                                byte[] unencryptedFile = new byte[fileBuffer.remaining()];
+                                fileBuffer.get(unencryptedFile);
+
+                                FileManager.saveFileWithPath(unencryptedFile, ManifestManager.getName(hex), chooser.getSelectedFile().toString());
                             }
                         }
                         case FILEACK -> {
@@ -121,13 +130,13 @@ public class MessageManager {
                             String nameHex = HexFormat.of().formatHex(hashName);
 
                             if(FileManager.saveFile(packet.data(),  nameHex+ ".dat")) {
-
                                 byte[] status = "success".getBytes();
                                 ByteBuffer buffer = ByteBuffer.allocate(64+status.length)
                                         .put(nameHex.getBytes())
                                         .put(status);
                                 this.send(new Packet(PacketType.FILEACK, buffer.array()));
                                 IO.println("File acknowledgement has been set.");
+
                             } else {
                                 byte[] status = "error".getBytes();
                                 byte[] hex = "x".repeat(64).getBytes(StandardCharsets.UTF_8);
@@ -135,6 +144,7 @@ public class MessageManager {
                                         .put(hex)
                                         .put(status);
                                 this.send(new Packet(PacketType.FILEACK, buffer.array()));
+
                             }
                         }
                         case FILEREQUEST -> {
@@ -149,8 +159,6 @@ public class MessageManager {
                             buffer.put(hexData);
                             buffer.put(file);
                             this.send(new Packet(PacketType.FILE, buffer.array()));
-
-
 
                         }
                         case DELETE -> {
