@@ -11,8 +11,7 @@ import java.util.stream.Collectors;
 public enum Command {
     FILE("<path>", "upload a file", args -> args.length == 0 ? CommandOutput.error("Usage: FILE <path>") : FileManager.readFile(args[0])),
     HELP("", "show this message", _ -> CommandOutput.print(helpText())),
-    DELETE("<path>", "delete a file", args -> args.length == 0 ? CommandOutput.error("Usage: DELETE <fileID>") : CommandOutput.send(new Packet(PacketType.DELETE, args[0].getBytes()))),
-    EXIT("", "exit the program", _ -> exit());
+    DELETE("<path>", "delete a file", args -> args.length == 0 ? CommandOutput.error("Usage: DELETE <fileID>") : CommandOutput.send(new Packet(PacketType.DELETE, args[0].getBytes())));
 
     private final String usage;
     private final String description;
@@ -30,10 +29,5 @@ public enum Command {
         return "Commands:\n" + Arrays.stream(values())
                 .map(c -> "    %-12s - %s".formatted(c.name() + " " + c.usage, c.description))
                 .collect(Collectors.joining("\n"));
-    }
-
-    private static CommandOutput exit() {
-        System.exit(0);
-        return CommandOutput.print("Exiting...");
     }
 }

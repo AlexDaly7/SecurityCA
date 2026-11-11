@@ -6,6 +6,7 @@ import java.security.GeneralSecurityException;
 
 import com.formdev.flatlaf.FlatLightLaf;
 import com.securityca.network.Connection;
+import com.securityca.ui.ChatWindow;
 import com.securityca.ui.LoginUI;
 import javax.swing.*;
 
@@ -65,12 +66,8 @@ public class Main {
                 System.exit(0);
             });
 
-            IO.println("HELP for commands, Ctrl + C in terminal to quit.");
-
-            String line;
-            while ((line = IO.readln()) != null) conn.send(line);
-
-            conn.close();
+            ChatWindow.show(conn);
+            IO.println("HELP for commands.");
         } catch (IOException e) {
             IO.println("Connection failed: " +  e.getMessage());
         } catch (GeneralSecurityException e) {

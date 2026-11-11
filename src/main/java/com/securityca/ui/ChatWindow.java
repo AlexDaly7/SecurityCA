@@ -1,7 +1,16 @@
 package com.securityca.ui;
 
+import com.securityca.network.Connection;
+
 import javax.swing.*;
+import javax.swing.border.TitledBorder;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
 import java.awt.*;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 
 public class ChatWindow {
     private JPanel rootPanel;
@@ -9,13 +18,46 @@ public class ChatWindow {
     private JButton sendBtn;
     private JTextPane messagesTextPn;
 
-    public static void show() {
-        JFrame frame = new JFrame("Chat");
-        frame.setContentPane(new ChatWindow().rootPanel);
+    public static void show(Connection conn) {
+        JFrame frame = new JFrame("SecurityCA");
+        frame.setContentPane(new ChatWindow(conn).rootPanel);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setMinimumSize(new Dimension(800, 600));
         frame.pack();
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
+    }
+
+    public ChatWindow(Connection conn) {
+        showOutputInWindow();
+
+        sendBtn.addActionListener(e -> {
+            conn.send(messageInputFld.getText());
+            messageInputFld.setText("");
+        });
+    }
+
+    private void showOutputInWindow() {
+        Document doc = messagesTextPn.getDocument();
+
+        // https://stackoverflow.com/a/33631139 on doing custom output streams
+        System.setOut(new PrintStream(new OutputStream() {
+            @Override
+            public void write(int b) throws IOException {
+                write(new byte[]{(byte) b}, 0, 1);
+            }
+
+            @Override
+            public void write(byte[] buffer, int off, int len) throws IOException {
+                String text = new String(buffer, off, len, StandardCharsets.UTF_8);
+                SwingUtilities.invokeLater(() -> {
+                    try {
+                        doc.insertString(doc.getLength(), text, null);
+                    } catch (BadLocationException _) {
+                    }
+                });
+            }
+        }, true, StandardCharsets.UTF_8));
     }
 
     {
@@ -35,12 +77,13 @@ public class ChatWindow {
     private void $$$setupUI$$$() {
         rootPanel = new JPanel();
         rootPanel.setLayout(new GridBagLayout());
+        rootPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10), null, TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
         messageInputFld = new JTextField();
         messageInputFld.setText("");
         GridBagConstraints gbc;
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
-        gbc.gridy = 1;
+        gbc.gridy = 2;
         gbc.gridwidth = 2;
         gbc.weightx = 1.0;
         gbc.anchor = GridBagConstraints.WEST;
@@ -50,22 +93,35 @@ public class ChatWindow {
         sendBtn.setEnabled(true);
         sendBtn.setText("Send");
         gbc = new GridBagConstraints();
-        gbc.gridx = 2;
-        gbc.gridy = 1;
+        gbc.gridx = 3;
+        gbc.gridy = 2;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         rootPanel.add(sendBtn, gbc);
         final JScrollPane scrollPane1 = new JScrollPane();
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
-        gbc.gridwidth = 3;
+        gbc.gridwidth = 4;
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
         rootPanel.add(scrollPane1, gbc);
         messagesTextPn = new JTextPane();
+        messagesTextPn.setEditable(false);
         messagesTextPn.setText("");
         scrollPane1.setViewportView(messagesTextPn);
+        final JPanel spacer1 = new JPanel();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 1;
+        gbc.gridy = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        rootPanel.add(spacer1, gbc);
+        final JPanel spacer2 = new JPanel();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 2;
+        gbc.gridy = 2;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        rootPanel.add(spacer2, gbc);
     }
 
     /**
@@ -74,4 +130,5 @@ public class ChatWindow {
     public JComponent $$$getRootComponent$$$() {
         return rootPanel;
     }
+
 }
