@@ -34,6 +34,16 @@ public class ChatWindow {
 
         uploadButton.addActionListener(_ -> {
             JFileChooser chooser = new JFileChooser();
+            String UploadFileName = chooser.getSelectedFile().getName();
+
+            for(var entry: ManifestManager.getFiles()){
+
+                if(entry.name().equals(UploadFileName)){
+                    conn.send("FILEUPDATE" + chooser.getSelectedFile().getAbsolutePath());
+                    break;
+                }
+            }
+
             int result = chooser.showOpenDialog(rootPanel);
 
             if (result == JFileChooser.APPROVE_OPTION) {

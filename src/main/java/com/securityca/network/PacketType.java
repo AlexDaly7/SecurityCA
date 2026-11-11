@@ -6,5 +6,6 @@ public enum PacketType {
     FILEACK,
     FILEREQUEST,
     DELETE,
-    DELETEACK
+    DELETEACK,
+    FILEUPDATE
 }

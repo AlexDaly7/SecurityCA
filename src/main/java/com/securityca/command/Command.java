@@ -14,7 +14,8 @@ public enum Command {
     LIST("", "list uploaded files", _ -> CommandOutput.print(listText())),
     HELP("", "show this message", _ -> CommandOutput.print(helpText())),
     DELETE("<path>", "delete a file", args -> args.length == 0 ? CommandOutput.error("Usage: DELETE <fileID>") : CommandOutput.send(new Packet(PacketType.DELETE, args[0].getBytes()))),
-    FILEREQUEST("<path>", "request a file from the server", args -> args.length == 0 ? CommandOutput.error("Usage: FILEREQUEST <fileID>") : CommandOutput.send(new Packet(PacketType.FILEREQUEST, args[0].getBytes())));
+    FILEREQUEST("<path>", "request a file from the server", args -> args.length == 0 ? CommandOutput.error("Usage: FILEREQUEST <fileID>") : CommandOutput.send(new Packet(PacketType.FILEREQUEST, args[0].getBytes()))),
+    FILEUPDATE("<path>", "update a file", args -> args.length == 0 ? CommandOutput.error("Usage: FILEUPDATE <path>") : FileManager.readFileUpdate(args[0]));
 
     private final String usage;
     private final String description;

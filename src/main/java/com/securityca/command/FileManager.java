@@ -45,6 +45,30 @@ public class FileManager {
         }
     }
 
+    public static CommandOutput readFileUpdate(String filename) {
+        try {
+            Path filePath = Paths.get(filename);
+            var file = Files.readAllBytes(filePath);
+
+            String name = filePath.getFileName().toString();
+            var nameBytes = name.getBytes();
+
+            byte[] data = ByteBuffer.allocate(2+nameBytes.length+file.length)
+                    .putShort((short) nameBytes.length)
+                    .put(nameBytes)
+                    .put(file)
+                    .array();
+
+            String encrypted = CryptoUtils.encrypt(ClientState.getDecryptionKey(), data);
+
+            IO.println("File has been read successfully!\nSending now...");
+
+            return CommandOutput.send(new Packet(PacketType.FILEUPDATE, encrypted.getBytes(StandardCharsets.UTF_8)));
+        } catch (IOException e) {
+            return CommandOutput.error("Error reading file " + filename);
+        }
+    }
+
 
     public static boolean saveFile(byte[] fileData, String name) {
         Path path = Paths.get(FilePaths.SERVER_STORAGE.toString(), name);
