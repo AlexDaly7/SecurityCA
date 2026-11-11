@@ -17,16 +17,16 @@ public final class Connection {
         this.messages = messages;
     }
 
-    public static Connection accept(ServerSocket server) throws IOException, GeneralSecurityException {
-        return open(server.accept());
+    public static Connection accept(ServerSocket server, String serverCode) throws IOException, GeneralSecurityException {
+        return open(server.accept(), serverCode);
     }
 
     public void handleUntilDisconnect() {
         messages.handleIncoming();
     }
 
-    public static Connection connect(String host, int port) throws IOException, GeneralSecurityException {
-        return open(new Socket(host, port));
+    public static Connection connect(String host, int port, String serverCode) throws IOException, GeneralSecurityException {
+        return open(new Socket(host, port), serverCode);
     }
 
     public void start(Runnable onDisconnect) {
@@ -43,7 +43,7 @@ public final class Connection {
 
     public void send(String line) { messages.handleOutgoing(line); }
 
-    private static Connection open(Socket socket) throws IOException, GeneralSecurityException {
+    private static Connection open(Socket socket, String serverCode) throws IOException, GeneralSecurityException {
         try {
             var in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             var out = new PrintWriter(socket.getOutputStream(), true);
@@ -51,7 +51,7 @@ public final class Connection {
             IO.println("Connected to " + socket.getInetAddress().getHostAddress() + ". Setting up encryption...");
             byte[] secret = handshake(in, out);
 
-            return new Connection(socket, new MessageManager(secret, in, out));
+            return new Connection(socket, new MessageManager(secret, serverCode, in, out));
         } catch (Exception e) {
             socket.close();
             throw e;

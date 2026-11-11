@@ -2,9 +2,11 @@ package com.securityca;
 
 import java.io.*;
 import java.net.*;
+import java.nio.file.Files;
 import java.security.GeneralSecurityException;
 
 import com.formdev.flatlaf.FlatLightLaf;
+import com.securityca.crypto.CryptoUtils;
 import com.securityca.network.Connection;
 import com.securityca.ui.ChatWindow;
 import com.securityca.ui.LoginUI;
@@ -29,11 +31,23 @@ public class Main {
 
     private static void runServer() {
         try (var server = new ServerSocket(PORT)) {
+
+            String serverPassword;
+            if (Files.exists(FilePaths.SERVER_PASSWORD)) {
+                serverPassword = Files.readString(FilePaths.SERVER_PASSWORD).trim();
+            } else {
+                serverPassword = IO.readln("Set server password: ").trim();
+                Files.writeString(FilePaths.SERVER_PASSWORD, serverPassword);
+            }
+
+            IO.println("Server password: " + serverPassword);
+            String serverCode = CryptoUtils.stretchServerPassword(serverPassword);
+
             while (true) {
                 IO.println("Waiting for new connection on port " + PORT + "...");
 
                 try {
-                    var conn = Connection.accept(server);
+                    var conn = Connection.accept(server, serverCode);
 
                     // finally ensures we still close cleanly even if en error occurs
                     try {
@@ -56,10 +70,19 @@ public class Main {
 
     private static void runClient(String serverIp) {
         try {
-            Connection conn;
+            Connection conn = null;
 
             LoginUI.show();
-            conn = Connection.connect(serverIp, PORT);
+
+            while (conn == null) {
+                String serverPassword = JOptionPane.showInputDialog("Server password:");
+                if (serverPassword == null) return;
+                try {
+                    conn = Connection.connect(serverIp, PORT, CryptoUtils.stretchServerPassword(serverPassword));
+                } catch (RuntimeException e) {
+                    IO.println("Wrong server code, try again.");
+                }
+            }
 
             conn.start(() -> {
                 IO.println("Disconnected.");

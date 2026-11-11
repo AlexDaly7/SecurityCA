@@ -7,6 +7,7 @@ import javax.crypto.*;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.HKDFParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.util.Base64;
 import java.util.regex.PatternSyntaxException;
@@ -92,9 +93,13 @@ public class CryptoUtils {
      }
     }
 
-    public static SecretKey aesFromSharedSecret(byte[] sharedSecret, String label) {
+    public static SecretKey aesFromSharedSecret(byte[] sharedSecret, String serverCode, String label) {
         try {
-            return KDF.getInstance("HKDF-SHA256").deriveKey("AES", HKDFParameterSpec.ofExtract().addIKM(sharedSecret).thenExpand(label.getBytes(), 32));
+            var hkdfSpec = HKDFParameterSpec.ofExtract()
+                    .addIKM(sharedSecret)
+                    .addSalt(serverCode.getBytes(StandardCharsets.UTF_8))
+                    .thenExpand(label.getBytes(), 32);
+            return KDF.getInstance("HKDF-SHA256").deriveKey("AES", hkdfSpec);
         } catch(NoSuchAlgorithmException e){
             throw new RuntimeException("Error, cryptographic algorithm not available:" + e);
         } catch(NullPointerException e){
@@ -120,5 +125,12 @@ public class CryptoUtils {
         byte[] out = new byte[32];
         gen.generateBytes(password, out);
         return new SecretKeySpec(out, "AES");
+    }
+
+    public static String stretchServerPassword(String password) {
+        byte[] salt = "server v1".getBytes(StandardCharsets.UTF_8);
+        return Base64.getEncoder().encodeToString(
+            keyFromPassword(password.toCharArray(), salt).getEncoded()
+        );
     }
 }

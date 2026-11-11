@@ -12,6 +12,7 @@ public class FilePaths {
     public static final Path CLIENT_MANIFEST = CLIENT.resolve("manifest.bin");
 
     public static final Path SERVER_STORAGE = SERVER.resolve("storage");
+    public static final Path SERVER_PASSWORD = SERVER.resolve("server-password.txt");
 
     public static void setupFilePaths() {
         try {

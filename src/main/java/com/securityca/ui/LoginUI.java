@@ -1,13 +1,11 @@
 package com.securityca.ui;
 
-import com.securityca.ClientState;
 import com.securityca.manifest.ManifestManager;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.nio.charset.StandardCharsets;
 
 public class LoginUI {
 
