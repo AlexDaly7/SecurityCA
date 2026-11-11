@@ -23,29 +23,33 @@ public class ManifestManager {
 
     private static boolean isLoaded = false;
 
-    // TODO: Make login and have manifestKey read from there.
-    static SecretKey manifestKey = ClientState.getDecryptionKey();
+    private static Runnable onChange = () -> {};
 
-    public static void checkManifest() {
-        if (!Files.exists(FilePaths.SERVER_MANIFEST)) {
+    public static void setOnChange(Runnable r) {
+        onChange = r;
+    }
+
+    public static boolean checkManifest() {
+        if (!Files.exists(FilePaths.CLIENT_MANIFEST)) {
             IO.println("manifest.bin created.");
             entries = new ArrayList<>();
             isLoaded = true;
             save();
-        } else {
-            IO.println("manifest.bin already exists");
-            load();
+
+            return true;
         }
+
+        return load();
     }
 
     public static void save() {
         try{
             if(!isLoaded) throw new IllegalStateException("Manifest not loaded, blocked saving blank manifest");
 
-            String encrypted = CryptoUtils.encrypt(manifestKey, serialize(entries));
-            Path tmp = FilePaths.SERVER_MANIFEST.resolveSibling("manifest.bin.tmp");
+            String encrypted = CryptoUtils.encrypt(ClientState.getDecryptionKey(), serialize(entries));
+            Path tmp = FilePaths.CLIENT_MANIFEST.resolveSibling("manifest.bin.tmp");
             Files.writeString(tmp, encrypted);
-            Files.move(tmp, FilePaths.SERVER_MANIFEST, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            Files.move(tmp, FilePaths.CLIENT_MANIFEST, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
         } catch(JsonProcessingException e) {
             IO.println("Error processing JSON(not just IO):" + e);
         } catch(InvalidPathException e) {
@@ -63,16 +67,20 @@ public class ManifestManager {
         }
     }
 
-    public static void load() {
+    public static boolean load() {
         try{
-            String data = Files.readString(FilePaths.SERVER_MANIFEST);
-            byte[] decrypted = CryptoUtils.decrypt(manifestKey, data);
+            String data = Files.readString(FilePaths.CLIENT_MANIFEST);
+            byte[] decrypted = CryptoUtils.decrypt(ClientState.getDecryptionKey(), data);
+
             entries = deserialize(decrypted);
             isLoaded = true;
-        } catch(OutOfMemoryError e) {
-            IO.println("Error, Java vm out of memory:" + e);
+
+            return true;
         } catch(IOException e){
             IO.println("Error, IO Exception occurred:" + e);
+            return false;
+        } catch (RuntimeException e) {
+            return false; // decryption failed
         }
     }
 
@@ -112,6 +120,7 @@ public class ManifestManager {
             if(expectingAck) {
                 entries.add(new FileEntry(id, lastName));
                 save();
+                onChange.run();
                 lastName = "";
                 expectingAck = false;
             }
@@ -134,7 +143,8 @@ public class ManifestManager {
         for(int i=0;i<entries.size();i++) {
             if(entries.get(i).id().equals(hex)) {
                 entries.remove(i);
-
+                save();
+                onChange.run();
                 IO.println("The file "+hex+" was deleted.");
                 return true;
             }

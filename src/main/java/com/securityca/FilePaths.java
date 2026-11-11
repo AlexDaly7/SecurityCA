@@ -9,7 +9,8 @@ public class FilePaths {
     private static final Path SERVER = ROOT.resolve("server");
     private static final Path CLIENT = ROOT.resolve("client");
 
-    public static final Path SERVER_MANIFEST = SERVER.resolve("manifest.bin");
+    public static final Path CLIENT_MANIFEST = CLIENT.resolve("manifest.bin");
+
     public static final Path SERVER_STORAGE = SERVER.resolve("storage");
 
     public static void setupFilePaths() {

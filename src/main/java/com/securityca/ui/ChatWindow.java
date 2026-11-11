@@ -1,21 +1,65 @@
 package com.securityca.ui;
 
+import com.securityca.manifest.ManifestManager;
+import com.securityca.network.Connection;
+import com.securityca.ui.components.FileEntry;
+
 import javax.swing.*;
+import javax.swing.border.TitledBorder;
 import java.awt.*;
 
 public class ChatWindow {
     private JPanel rootPanel;
-    private JTextField messageInputFld;
-    private JButton sendBtn;
-    private JTextPane messagesTextPn;
+    private JButton uploadButton;
+    private JScrollPane filesPane;
+    private JPanel filesList;
 
-    public static void show() {
-        JFrame frame = new JFrame("Chat");
-        frame.setContentPane(new ChatWindow().rootPanel);
+    private final Connection conn;
+
+    public static void show(Connection conn) {
+        JFrame frame = new JFrame("SecurityCA");
+        frame.setContentPane(new ChatWindow(conn).rootPanel);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setMinimumSize(new Dimension(800, 600));
         frame.pack();
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
+    }
+
+    public ChatWindow(Connection conn) {
+        this.conn = conn;
+
+        filesList.setLayout(new BoxLayout(filesList, BoxLayout.Y_AXIS));
+        this.loadFiles();
+
+        uploadButton.addActionListener(_ -> {
+            JFileChooser chooser = new JFileChooser();
+            int result = chooser.showOpenDialog(rootPanel);
+
+            if (result == JFileChooser.APPROVE_OPTION) {
+                conn.send("FILE " + chooser.getSelectedFile().getAbsolutePath());
+            }
+        });
+
+        ManifestManager.setOnChange(() -> {
+            SwingUtilities.invokeLater(this::loadFiles);
+        });
+    }
+
+    private void loadFiles() {
+        filesList.removeAll();
+        var files = ManifestManager.getFiles();
+
+        if (files.isEmpty()) {
+            filesList.add(new JLabel("No files found."));
+        } else {
+            for (var fileEntry : files) {
+                filesList.add(new FileEntry(conn, fileEntry.name(), fileEntry.id()));
+            }
+        }
+
+        filesList.revalidate();
+        filesList.repaint();
     }
 
     {
@@ -35,37 +79,33 @@ public class ChatWindow {
     private void $$$setupUI$$$() {
         rootPanel = new JPanel();
         rootPanel.setLayout(new GridBagLayout());
-        messageInputFld = new JTextField();
-        messageInputFld.setText("");
+        rootPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10), null, TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+        filesPane = new JScrollPane();
         GridBagConstraints gbc;
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
-        gbc.gridy = 1;
-        gbc.gridwidth = 2;
-        gbc.weightx = 1.0;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        rootPanel.add(messageInputFld, gbc);
-        sendBtn = new JButton();
-        sendBtn.setEnabled(true);
-        sendBtn.setText("Send");
-        gbc = new GridBagConstraints();
-        gbc.gridx = 2;
-        gbc.gridy = 1;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        rootPanel.add(sendBtn, gbc);
-        final JScrollPane scrollPane1 = new JScrollPane();
-        gbc = new GridBagConstraints();
-        gbc.gridx = 0;
         gbc.gridy = 0;
-        gbc.gridwidth = 3;
+        gbc.gridwidth = 6;
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
-        rootPanel.add(scrollPane1, gbc);
-        messagesTextPn = new JTextPane();
-        messagesTextPn.setText("");
-        scrollPane1.setViewportView(messagesTextPn);
+        rootPanel.add(filesPane, gbc);
+        filesList = new JPanel();
+        filesList.setLayout(new BorderLayout(0, 0));
+        filesPane.setViewportView(filesList);
+        uploadButton = new JButton();
+        uploadButton.setText("Upload");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        rootPanel.add(uploadButton, gbc);
+        final JPanel spacer1 = new JPanel();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.fill = GridBagConstraints.VERTICAL;
+        rootPanel.add(spacer1, gbc);
     }
 
     /**
@@ -74,4 +114,5 @@ public class ChatWindow {
     public JComponent $$$getRootComponent$$$() {
         return rootPanel;
     }
+
 }
