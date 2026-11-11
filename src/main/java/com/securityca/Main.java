@@ -33,7 +33,7 @@ public class Main {
                 System.exit(0);
             });
 
-            IO.println("HELP for commands, Ctrl + D or Ctrl + Z on Windows to quit.");
+            IO.println("HELP for commands, Ctrl + C in terminal to quit.");
 
             String line;
             while ((line = IO.readln()) != null) conn.send(line);

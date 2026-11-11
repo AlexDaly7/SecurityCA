@@ -27,7 +27,7 @@ public class ManifestManager {
     static SecretKey manifestKey = ClientState.getDecryptionKey();
 
     public static boolean checkManifest() {
-        if (!Files.exists(FilePaths.SERVER_MANIFEST)) {
+        if (!Files.exists(FilePaths.CLIENT_MANIFEST)) {
             IO.println("manifest.bin created.");
             entries = new ArrayList<>();
             isLoaded = true;
@@ -44,9 +44,9 @@ public class ManifestManager {
             if(!isLoaded) throw new IllegalStateException("Manifest not loaded, blocked saving blank manifest");
 
             String encrypted = CryptoUtils.encrypt(manifestKey, serialize(entries));
-            Path tmp = FilePaths.SERVER_MANIFEST.resolveSibling("manifest.bin.tmp");
+            Path tmp = FilePaths.CLIENT_MANIFEST.resolveSibling("manifest.bin.tmp");
             Files.writeString(tmp, encrypted);
-            Files.move(tmp, FilePaths.SERVER_MANIFEST, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            Files.move(tmp, FilePaths.CLIENT_MANIFEST, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
         } catch(JsonProcessingException e) {
             IO.println("Error processing JSON(not just IO):" + e);
         } catch(InvalidPathException e) {
@@ -66,7 +66,7 @@ public class ManifestManager {
 
     public static boolean load() {
         try{
-            String data = Files.readString(FilePaths.SERVER_MANIFEST);
+            String data = Files.readString(FilePaths.CLIENT_MANIFEST);
             byte[] decrypted = CryptoUtils.decrypt(manifestKey, data);
 
             entries = deserialize(decrypted);
