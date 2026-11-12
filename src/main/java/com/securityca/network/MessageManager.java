@@ -4,6 +4,7 @@ import com.securityca.ClientState;
 import com.securityca.command.FileManager;
 import com.securityca.crypto.CryptoUtils;
 import com.securityca.manifest.ManifestManager;
+import com.securityca.ui.Dialog;
 
 import javax.crypto.SecretKey;
 import javax.swing.*;
@@ -13,6 +14,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
@@ -24,18 +26,22 @@ public class MessageManager {
     private final BufferedReader in;
     private final PrintWriter out;
 
-    public MessageManager(byte[] sharedSecret, String serverCode, BufferedReader in, PrintWriter out) throws IOException, RuntimeException {
-            this.in = in;
-            this.out = out;
-            // "chat v1" is the label. This is so we can later use one secret for multiple keys to distinguish operations, say once we add file transfer/storage/accession, e.g. "files v1"
-            // Turn into AES key. Done by first taking the raw secret, then "expanding" with our "chat v1" label and producing the 32byte AES key.
-            this.key = CryptoUtils.aesFromSharedSecret(sharedSecret, serverCode, "chat v1");
+    public MessageManager(byte[] sharedSecret, String serverCode, BufferedReader in, PrintWriter out) throws IOException, GeneralSecurityException {
+        this.in = in;
+        this.out = out;
+        // "chat v1" is the label. This is so we can later use one secret for multiple keys to distinguish operations, say once we add file transfer/storage/accession, e.g. "files v1"
+        // Turn into AES key. Done by first taking the raw secret, then "expanding" with our "chat v1" label and producing the 32byte AES key.
+        this.key = CryptoUtils.aesFromSharedSecret(sharedSecret, serverCode, "chat v1");
 
-            String me = ClientState.isServer ? "server" : "client";
-            String them = ClientState.isServer ? "client" : "server";
-            out.println(CryptoUtils.encrypt(key, me.getBytes(StandardCharsets.UTF_8)));;
-            String reply = new String(CryptoUtils.decrypt(key, in.readLine()), StandardCharsets.UTF_8);
-            if (!reply.equals(them)) throw new IOException("Key confirmation failed.");
+        String me = ClientState.isServer ? "server" : "client";
+        String them = ClientState.isServer ? "client" : "server";
+        out.println(CryptoUtils.encrypt(key, me.getBytes(StandardCharsets.UTF_8)));
+
+        String line = in.readLine();
+        if (line == null) throw new IOException("Peer hung up during key confirmation.");
+
+        String reply = new String(CryptoUtils.decrypt(key, line), StandardCharsets.UTF_8);
+        if (!reply.equals(them)) throw new IOException("Key confirmation failed.");
     }
 
     public void send(Packet packet) {
@@ -69,17 +75,24 @@ public class MessageManager {
 
                                 String hex = new String(hexData, StandardCharsets.UTF_8);
 
-                                byte[] unencrypted = CryptoUtils.decrypt(ClientState.getDecryptionKey(), new String(fileData, StandardCharsets.UTF_8));
-                                ByteBuffer fileBuffer = ByteBuffer.wrap(unencrypted);
+                                try {
+                                    byte[] unencrypted = CryptoUtils.decrypt(ClientState.getDecryptionKey(), new String(fileData, StandardCharsets.UTF_8));
+                                    ByteBuffer fileBuffer = ByteBuffer.wrap(unencrypted);
 
-                                short nameLength = fileBuffer.getShort();
-                                byte[] name = new byte[nameLength];
-                                fileBuffer.get(name);
+                                    short nameLength = fileBuffer.getShort();
+                                    byte[] name = new byte[nameLength];
+                                    fileBuffer.get(name);
 
-                                byte[] unencryptedFile = new byte[fileBuffer.remaining()];
-                                fileBuffer.get(unencryptedFile);
+                                    byte[] unencryptedFile = new byte[fileBuffer.remaining()];
+                                    fileBuffer.get(unencryptedFile);
 
-                                FileManager.saveFileWithPath(unencryptedFile, ManifestManager.getName(hex), chooser.getSelectedFile().toString());
+                                    var isSaveSuccess = FileManager.saveFileWithPath(unencryptedFile, ManifestManager.getName(hex), chooser.getSelectedFile().toString());
+                                    if (!isSaveSuccess) {
+                                        Dialog.error("Could not save the file.");
+                                    }
+                                } catch (GeneralSecurityException e) {
+                                    Dialog.error("This file is corrupt or is encrypted with a different passkey.");
+                                }
                             }
                         }
                         case FILEACK -> {
@@ -95,11 +108,14 @@ public class MessageManager {
                             buffer.get(status);
 
                             if(new String(status).equals("success")) {
-                                IO.println("ACK SUCCESS");
-                                ManifestManager.saveFile(new String(hashName));
+                                try {
+                                    ManifestManager.saveFile(new String(hashName));
+                                } catch (IOException e) {
+                                    Dialog.error("Could not save to manifest");
+                                }
                             } else if(new String(status).equals("error")) {
                                 ManifestManager.disregardAck();
-                                IO.println("ACK ERROR");
+                                Dialog.error("The server could not store the file.");
                             }
                         }
                         case DELETEACK -> {
@@ -111,12 +127,16 @@ public class MessageManager {
                             String hexString = new String(hexBytes, StandardCharsets.UTF_8);
 
                             if(status==1) {
-                                ManifestManager.deleteFile(hexString);
+                                try {
+                                    ManifestManager.deleteFile(hexString);
+                                } catch (IOException e) {
+                                    Dialog.error("Could not save the manifest: " + e.getMessage());
+                                }
                             } else {
-                                IO.println("The server failed to delete the file: "+hexString);
+                                Dialog.error("The server failed to delete the file: " + hexString);
                             }
                         }
-                        default ->  IO.println("Unknown receiving packet type: " + packet.type());
+                        default -> IO.println("Unknown receiving packet type: " + packet.type());
                     }
 
                 } else {
@@ -177,10 +197,11 @@ public class MessageManager {
 
                             this.send(new Packet(PacketType.DELETEACK, buffer.array()));
                         }
+                        default -> IO.println("Unhandled packet type: " + packet.type());
                     }
                 }
             }
-        } catch(IOException | NoSuchAlgorithmException e){
+        } catch(IOException | GeneralSecurityException e){
             IO.println("Error, IO Exception occurred:" + e);
         }
     }

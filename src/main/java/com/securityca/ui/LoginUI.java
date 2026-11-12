@@ -6,6 +6,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.IOException;
 
 public class LoginUI {
     private JPasswordField PasskeyField;
@@ -22,12 +23,16 @@ public class LoginUI {
     }
 
     private void attemptLogin() {
-        if (ManifestManager.unlock(PasskeyField.getPassword())) {
-            close();
-        } else {
-            incorrect = incorrect + 1;
-            PasskeyLabel.setText("Wrong passkey, try again (" +  incorrect + ")");
-            PasskeyField.setText("");
+        try {
+            if (ManifestManager.unlock(PasskeyField.getPassword())) {
+                close();
+            } else {
+                incorrect = incorrect + 1;
+                PasskeyLabel.setText("Wrong passkey, try again (" +  incorrect + ")");
+                PasskeyField.setText("");
+            }
+        } catch (IOException e) {
+            Dialog.error("Could not read manifest: " + e.getMessage());
         }
     }
 

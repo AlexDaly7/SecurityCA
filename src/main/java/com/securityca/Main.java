@@ -9,6 +9,7 @@ import com.formdev.flatlaf.FlatLightLaf;
 import com.securityca.crypto.CryptoUtils;
 import com.securityca.network.Connection;
 import com.securityca.ui.ChatWindow;
+import com.securityca.ui.Dialog;
 import com.securityca.ui.LoginUI;
 import javax.swing.*;
 
@@ -61,6 +62,8 @@ public class Main {
                     IO.println("Client connection failed: " + e.getMessage());
                 } catch (RuntimeException e) {
                     IO.println("Client sent invalid data, closing connection: " + e.getMessage());
+                } catch (IOException e) {
+                    IO.println("Connection error: " + e.getMessage());
                 }
             }
         } catch (IOException e) {
@@ -74,28 +77,25 @@ public class Main {
 
             LoginUI.show();
 
+            String prompt = "Server password:";
             while (conn == null) {
-                String serverPassword = JOptionPane.showInputDialog("Server password:");
+                String serverPassword = JOptionPane.showInputDialog(prompt);
                 if (serverPassword == null) return;
                 try {
                     conn = Connection.connect(serverIp, PORT, CryptoUtils.stretchServerPassword(serverPassword));
-                } catch (RuntimeException e) {
-                    IO.println("Wrong server code, try again.");
+                } catch (GeneralSecurityException e) {
+                    prompt = "Wrong server password, try again:";
                 }
             }
 
             conn.start(() -> {
-                IO.println("Disconnected.");
+                JOptionPane.showMessageDialog(null, "Disconnected from server.");
                 System.exit(0);
             });
 
             ChatWindow.show(conn);
-            IO.println("HELP for commands.");
         } catch (IOException e) {
-            IO.println("Connection failed: " +  e.getMessage());
-        } catch (GeneralSecurityException e) {
-            IO.println("Secure handshake failed: " + e.getMessage());
+            Dialog.error("Connection failed: " + e.getMessage());
         }
-
     }
 }
