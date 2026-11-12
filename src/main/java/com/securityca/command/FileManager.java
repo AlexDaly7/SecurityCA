@@ -29,7 +29,13 @@ public class FileManager {
 
         IO.println("File has been read successfully!\nSending now...");
         String encrypted = CryptoUtils.encrypt(ClientState.getDecryptionKey(), data);
-        if (packetType == PacketType.FILE) ManifestManager.expectAck(name);
+        ManifestManager.expectAck(name);
+        if (packetType == PacketType.FILEUPDATE) {
+            encrypted = ManifestManager.getFiles().stream()
+                    .filter(e -> e.name().equals(name))
+                    .findFirst().orElseThrow().id() + encrypted; // prepend update with old file id
+        }
+
         return new Packet(packetType, encrypted.getBytes(StandardCharsets.UTF_8));
     }
 

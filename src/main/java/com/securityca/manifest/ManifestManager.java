@@ -89,6 +89,7 @@ public class ManifestManager {
 
     public static void saveFile(String id) throws IOException {
         if (expectingAck) {
+            entries.removeIf(e -> e.name().equals(lastName));
             entries.add(new FileEntry(id, lastName, System.currentTimeMillis()));
             save();
             onChange.run();

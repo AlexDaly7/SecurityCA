@@ -16,7 +16,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.HexFormat;
 
 public class MessageManager {
@@ -143,12 +143,17 @@ public class MessageManager {
                     // Server response
                     switch (packet.type()) {
                         case MESSAGE -> {}
-                        case FILE -> {
+                        case FILE, FILEUPDATE -> {
+                            boolean isUpdate = packet.type() == PacketType.FILEUPDATE;
+
+                            byte[] data = isUpdate ? Arrays.copyOfRange(packet.data(), 64, packet.data().length) : packet.data();
+
                             var digest = MessageDigest.getInstance("SHA-256");
-                            var hashName = digest.digest(packet.data());
+                            var hashName = digest.digest(data);
                             String nameHex = HexFormat.of().formatHex(hashName);
 
-                            if(FileManager.saveFile(packet.data(),  nameHex+ ".dat")) {
+                            if(FileManager.saveFile(data,  nameHex+ ".dat")) {
+                                if (isUpdate) FileManager.deleteFile(new String(packet.data(), 0, 64, StandardCharsets.UTF_8));
                                 byte[] status = "success".getBytes();
                                 ByteBuffer buffer = ByteBuffer.allocate(64+status.length)
                                         .put(nameHex.getBytes())
