@@ -21,13 +21,32 @@ public class FileManager {
         String name = filePath.getFileName().toString();
         var nameBytes = name.getBytes(StandardCharsets.UTF_8);
 
-        byte[] data = ByteBuffer.allocate(2 + nameBytes.length + file.length)
-                .putShort((short) nameBytes.length)
-                .put(nameBytes)
-                .put(file)
-                .array();
+        String hex = "0";
+        byte[] data;
 
-        IO.println("File has been read successfully!\nSending now...");
+        for(var entry: ManifestManager.getFiles()){
+
+            if(entry.name().equals(name)){
+                hex = entry.id();
+                break;
+            }
+        }
+        if(!hex.equals("0")){
+             data = ByteBuffer.allocate(66 + nameBytes.length + file.length)
+                    .put(hex.getBytes())
+                    .putShort((short) nameBytes.length)
+                    .put(nameBytes)
+                    .put(file)
+                    .array();
+        }else {
+            data = ByteBuffer.allocate(2 + nameBytes.length + file.length)
+                    .putShort((short) nameBytes.length)
+                    .put(nameBytes)
+                    .put(file)
+                    .array();
+        }
+
+        IO.println("File has been read successfully!\nSending now..." + hex);
         String encrypted = CryptoUtils.encrypt(ClientState.getDecryptionKey(), data);
         if (packetType == PacketType.FILE) ManifestManager.expectAck(name);
         return new Packet(packetType, encrypted.getBytes(StandardCharsets.UTF_8));
