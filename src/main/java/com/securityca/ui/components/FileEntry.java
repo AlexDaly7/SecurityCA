@@ -7,13 +7,27 @@ import com.securityca.network.PacketType;
 import javax.swing.*;
 import java.awt.*;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
 public class FileEntry extends JPanel {
-    public FileEntry(Connection conn, String filename, String filehash) {
+    public FileEntry(Connection conn, String filename, String filehash, long uploadedAt) {
         super(new BorderLayout());
 
-        add(new JLabel(filename),  BorderLayout.WEST);
-        setToolTipText(filehash);
+        var nameLabel = new JLabel(filename);
+        add(nameLabel, BorderLayout.WEST);
+
+        String date = uploadedAt == 0
+                ? "Unknown upload date"
+                : DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")
+                .format(Instant.ofEpochMilli(uploadedAt).atZone(ZoneId.systemDefault()));;
+
+        setToolTipText("Uploaded: " + date + ", hash: " + filehash);
+
+        var dateLabel = new JLabel(date);
+        dateLabel.setFont(new Font(dateLabel.getFont().getName(), Font.PLAIN, 12));
+        add(dateLabel, BorderLayout.SOUTH);
 
         JPanel buttons = new JPanel(new FlowLayout());
 

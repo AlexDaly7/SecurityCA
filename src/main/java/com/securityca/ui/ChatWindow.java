@@ -63,7 +63,7 @@ public class ChatWindow {
             filesList.add(new JLabel("No files found."));
         } else {
             for (var fileEntry : files) {
-                filesList.add(new FileEntry(conn, fileEntry.name(), fileEntry.id()));
+                filesList.add(new FileEntry(conn, fileEntry.name(), fileEntry.id(), fileEntry.uploadedAt()));
             }
         }
 

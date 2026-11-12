@@ -89,7 +89,7 @@ public class ManifestManager {
 
     public static void saveFile(String id) throws IOException {
         if (expectingAck) {
-            entries.add(new FileEntry(id, lastName));
+            entries.add(new FileEntry(id, lastName, System.currentTimeMillis()));
             save();
             onChange.run();
             lastName = "";
