@@ -139,13 +139,10 @@ public class MessageManager {
                         case FILEUPDATEACK -> {
 
                             ByteBuffer buffer = ByteBuffer.wrap(packet.data());
-                            byte[] hexBytes = new byte[64];
-                            buffer.get(hexBytes);
-                            int status = buffer.get();
+                            byte status = buffer.get();
 
-                            String hexString = new String(hexBytes, StandardCharsets.UTF_8);
 
-                            if(status==1){
+                            if(status == '1'){
                                 IO.println("success");
                             } else {
                                 Dialog.error("The server failed to update the file");
@@ -223,8 +220,7 @@ public class MessageManager {
 
                             if(FileManager.saveFile(packet.data(),  hex + ".dat")) {
                                 byte[] status = "1".getBytes();
-                                buffer = ByteBuffer.allocate(64+status.length)
-                                        .put(hex.getBytes())
+                                buffer = ByteBuffer.allocate(status.length)
                                         .put(status);
                                 this.send(new Packet(PacketType.FILEUPDATEACK, buffer.array()));
                                 IO.println("File acknowledgement has been set.");

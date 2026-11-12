@@ -31,23 +31,28 @@ public class FileManager {
                 break;
             }
         }
+
+        data = ByteBuffer.allocate(2 + nameBytes.length + file.length)
+                .putShort((short) nameBytes.length)
+                .put(nameBytes)
+                .put(file)
+                .array();
+
+        String encrypted = CryptoUtils.encrypt(ClientState.getDecryptionKey(), data);
+
         if(!hex.equals("0")){
-             data = ByteBuffer.allocate(66 + nameBytes.length + file.length)
+
+            ByteBuffer hexData = ByteBuffer.allocate(64 + encrypted.length())
                     .put(hex.getBytes())
-                    .putShort((short) nameBytes.length)
-                    .put(nameBytes)
-                    .put(file)
-                    .array();
-        }else {
-            data = ByteBuffer.allocate(2 + nameBytes.length + file.length)
-                    .putShort((short) nameBytes.length)
-                    .put(nameBytes)
-                    .put(file)
-                    .array();
+                    .put(encrypted.getBytes());
+
+
+
+            encrypted = new String(hexData.array(), StandardCharsets.UTF_8);
+
         }
 
         IO.println("File has been read successfully!\nSending now..." + hex);
-        String encrypted = CryptoUtils.encrypt(ClientState.getDecryptionKey(), data);
         if (packetType == PacketType.FILE) ManifestManager.expectAck(name);
         return new Packet(packetType, encrypted.getBytes(StandardCharsets.UTF_8));
     }
