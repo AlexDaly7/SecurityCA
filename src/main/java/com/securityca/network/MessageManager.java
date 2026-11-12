@@ -110,6 +110,7 @@ public class MessageManager {
                             if(new String(status).equals("success")) {
                                 try {
                                     ManifestManager.saveFile(new String(hashName));
+                                    SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(null, "File uploaded."));
                                 } catch (IOException e) {
                                     Dialog.error("Could not save to manifest");
                                 }

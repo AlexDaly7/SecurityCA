@@ -29,7 +29,7 @@ public class FileManager {
 
         IO.println("File has been read successfully!\nSending now...");
         String encrypted = CryptoUtils.encrypt(ClientState.getDecryptionKey(), data);
-        ManifestManager.expectAck(name);
+        ManifestManager.expectAck(name); // both FILE and FILEUPDATE get replied to with FILEACK
         if (packetType == PacketType.FILEUPDATE) {
             encrypted = ManifestManager.getFiles().stream()
                     .filter(e -> e.name().equals(name))
