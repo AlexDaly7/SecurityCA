@@ -216,7 +216,6 @@ public class MessageManager {
                             byte[] hexData = new byte[64];
                             buffer.get(hexData);
                             String hex = new String(hexData, StandardCharsets.UTF_8);
-                            IO.println(hex);
 
                             if(FileManager.saveFile(packet.data(),  hex + ".dat")) {
                                 byte[] status = "1".getBytes();
