@@ -136,6 +136,19 @@ public class MessageManager {
                                 Dialog.error("The server failed to delete the file: " + hexString);
                             }
                         }
+                        case FILEUPDATEACK -> {
+
+                            ByteBuffer buffer = ByteBuffer.wrap(packet.data());
+                            byte status = buffer.get();
+
+
+                            if(status == '1'){
+                                IO.println("success");
+                            } else {
+                                Dialog.error("The server failed to update the file");
+                            }
+
+                        }
                         default -> IO.println("Unknown receiving packet type: " + packet.type());
                     }
 
@@ -196,6 +209,23 @@ public class MessageManager {
                                     .put(data);
 
                             this.send(new Packet(PacketType.DELETEACK, buffer.array()));
+                        }
+                        case FILEUPDATE -> {
+
+                            ByteBuffer buffer = ByteBuffer.wrap(packet.data());
+                            byte[] hexData = new byte[64];
+                            buffer.get(hexData);
+                            String hex = new String(hexData, StandardCharsets.UTF_8);
+
+                            if(FileManager.saveFile(packet.data(),  hex + ".dat")) {
+                                byte[] status = "1".getBytes();
+                                buffer = ByteBuffer.allocate(status.length)
+                                        .put(status);
+                                this.send(new Packet(PacketType.FILEUPDATEACK, buffer.array()));
+                                IO.println("File acknowledgement has been set.");
+
+                            }
+
                         }
                         default -> IO.println("Unhandled packet type: " + packet.type());
                     }
