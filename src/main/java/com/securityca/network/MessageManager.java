@@ -136,7 +136,7 @@ public class MessageManager {
                                 Dialog.error("The server failed to delete the file: " + hexString);
                             }
                         }
-                        case FILEUPDATE -> {
+                        case FILEUPDATEACK -> {
 
                             ByteBuffer buffer = ByteBuffer.wrap(packet.data());
                             byte[] hexBytes = new byte[64];
@@ -226,7 +226,7 @@ public class MessageManager {
                                 buffer = ByteBuffer.allocate(64+status.length)
                                         .put(hex.getBytes())
                                         .put(status);
-                                this.send(new Packet(PacketType.FILEUPDATE, buffer.array()));
+                                this.send(new Packet(PacketType.FILEUPDATEACK, buffer.array()));
                                 IO.println("File acknowledgement has been set.");
 
                             }
