@@ -44,30 +44,26 @@ public class Main {
             IO.println("Server password: " + serverPassword);
             String serverCode = CryptoUtils.stretchServerPassword(serverPassword);
 
+            IO.println("Listening on port " + PORT + "...");
             while (true) {
-                IO.println("Waiting for new connection on port " + PORT + "...");
 
-                try {
-                    var conn = Connection.accept(server, serverCode);
-
-                    // finally ensures we still close cleanly even if en error occurs
-                    try {
-                        conn.handleUntilDisconnect();
-                    } finally {
-                        conn.close();
+                var socket = server.accept();
+                var client = socket.getRemoteSocketAddress();
+                Thread.startVirtualThread(() -> {
+                    try (socket) {
+                        Connection.open(socket, serverCode).handleUntilDisconnect();
+                        IO.println(client + " disconnected.");
+                    } catch (GeneralSecurityException e) {
+                        IO.println(client + " failed handshake (wrong server password?): " + e.getMessage());
+                    } catch (RuntimeException e) {
+                        IO.println(client + " sent invalid data, closing connection: " + e.getMessage());
+                    } catch (IOException e) {
+                        IO.println(client + " connection error: " + e.getMessage());
                     }
-
-                    IO.println("Client disconnected.");
-                } catch (GeneralSecurityException e) {
-                    IO.println("Client connection failed: " + e.getMessage());
-                } catch (RuntimeException e) {
-                    IO.println("Client sent invalid data, closing connection: " + e.getMessage());
-                } catch (IOException e) {
-                    IO.println("Connection error: " + e.getMessage());
-                }
+                });
             }
         } catch (IOException e) {
-            IO.println("Could not start sever: " + e.getMessage());
+            IO.println("Server stopped: " + e.getMessage());
         }
     }
 

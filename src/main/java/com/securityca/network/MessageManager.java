@@ -232,7 +232,7 @@ public class MessageManager {
                 }
             }
         } catch(IOException | GeneralSecurityException e){
-            IO.println("Error, IO Exception occurred:" + e);
+            IO.println("Connection closed:" + e);
         }
     }
 }

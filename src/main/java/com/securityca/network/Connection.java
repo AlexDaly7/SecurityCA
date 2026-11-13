@@ -2,23 +2,16 @@ package com.securityca.network;
 
 import javax.crypto.KeyAgreement;
 import java.io.*;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.*;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 public final class Connection {
-    private final Socket socket;
     private final MessageManager messages;
 
-    private Connection(Socket socket, MessageManager messages) {
-        this.socket = socket;
+    private Connection(MessageManager messages) {
         this.messages = messages;
-    }
-
-    public static Connection accept(ServerSocket server, String serverCode) throws IOException, GeneralSecurityException {
-        return open(server.accept(), serverCode);
     }
 
     public void handleUntilDisconnect() {
@@ -39,19 +32,17 @@ public final class Connection {
         });
     }
 
-    public void close() throws IOException { socket.close(); }
-
     public void send(Packet packet) { messages.send(packet); }
 
-    private static Connection open(Socket socket, String serverCode) throws IOException, GeneralSecurityException {
+    public static Connection open(Socket socket, String serverCode) throws IOException, GeneralSecurityException {
         try {
             var in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             var out = new PrintWriter(socket.getOutputStream(), true);
 
-            IO.println("Connected to " + socket.getInetAddress().getHostAddress() + ". Setting up encryption...");
+            IO.println("Connected to " + socket.getRemoteSocketAddress() + ". Setting up encryption...");
             byte[] secret = handshake(in, out);
 
-            return new Connection(socket, new MessageManager(secret, serverCode, in, out));
+            return new Connection(new MessageManager(secret, serverCode, in, out));
         } catch (Exception e) {
             socket.close();
             throw e;
