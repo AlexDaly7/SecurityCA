@@ -40,7 +40,7 @@ java -jar target/SecurityCA-1.0-SNAPSHOT.jar <ip-address>
 
 ### Prebuilt jar
 
-A jar can be downloaded from [here](https://github.com/AlexDaly7/SecurityCA/releases/tag/v1.0).
+A jar can be downloaded from [here](https://github.com/AlexDaly7/SecurityCA/releases/tag/V1.1).
 
 ## Tests
 
