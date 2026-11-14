@@ -38,5 +38,17 @@ public class EncryptDecryptTest {
     }
 
 
+    @Test
+    void EncryptDecryptWrongKey() throws GeneralSecurityException {
+
+        byte[] testInput = "example".getBytes(StandardCharsets.UTF_8);
+        String encrypted = CryptoUtils.encrypt(key, testInput);
+        char[] password = "wrongPassword".toCharArray();
+        key = CryptoUtils.keyFromPassword(password, salt);
+
+        assertThrows(AEADBadTagException.class, () -> {
+            CryptoUtils.decrypt(key, encrypted);
+        });
+    }
 
 }
