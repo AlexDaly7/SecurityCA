@@ -217,14 +217,16 @@ public class MessageManager {
                             buffer.get(hexData);
                             String hex = new String(hexData, StandardCharsets.UTF_8);
 
-                            if(FileManager.saveFile(packet.data(),  hex + ".dat")) {
-                                byte[] status = "1".getBytes();
-                                buffer = ByteBuffer.allocate(status.length)
-                                        .put(status);
-                                this.send(new Packet(PacketType.FILEUPDATEACK, buffer.array()));
-                                IO.println("File acknowledgement has been set.");
+                            // everything after the 64-char id is the encrypted file, store only that
+                            byte[] fileData = new byte[buffer.remaining()];
+                            buffer.get(fileData);
 
-                            }
+                            // only overwrite a file that already exists, this also stops the id being used as a path
+                            boolean saved = FileManager.getFiles().contains(hex)
+                                    && FileManager.saveFile(fileData, hex + ".dat");
+
+                            this.send(new Packet(PacketType.FILEUPDATEACK, (saved ? "1" : "0").getBytes()));
+                            if (saved) IO.println("File acknowledgement has been set.");
 
                         }
                         default -> IO.println("Unhandled packet type: " + packet.type());
