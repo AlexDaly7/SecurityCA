@@ -8,7 +8,6 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
-import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -30,14 +29,14 @@ public class EncryptDecryptTest {
         ClientState.setDecryptionKey(CryptoUtils.keyFromPassword(password, salt));
     }
 
-
+    //regular test to see if data going in is the same as data coming out of encryption
     @Test
     void EncryptDecrypt() throws GeneralSecurityException {
         byte[] testInput = "example".getBytes(StandardCharsets.UTF_8);
         assertArrayEquals(testInput, CryptoUtils.decrypt(key, CryptoUtils.encrypt(key, testInput)));
     }
 
-
+    //regular test to see if wrong key will trigger an error
     @Test
     void EncryptDecryptWrongKey() throws GeneralSecurityException {
 
