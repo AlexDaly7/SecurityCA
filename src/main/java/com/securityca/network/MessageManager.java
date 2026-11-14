@@ -143,8 +143,13 @@ public class MessageManager {
 
 
                             if(status == '1'){
-                                IO.println("success");
+                                try {
+                                    ManifestManager.updateFile();
+                                } catch (IOException e) {
+                                    Dialog.error("Could not save to manifest");
+                                }
                             } else {
+                                ManifestManager.disregardAck();
                                 Dialog.error("The server failed to update the file");
                             }
 

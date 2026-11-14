@@ -53,7 +53,7 @@ public class FileManager {
         }
 
         IO.println("File has been read successfully!\nSending now...");
-        if (packetType == PacketType.FILE) ManifestManager.expectAck(name);
+        ManifestManager.expectAck(name); // both FILE and FILEUPDATE have acks
         return new Packet(packetType, encrypted.getBytes(StandardCharsets.UTF_8));
     }
 

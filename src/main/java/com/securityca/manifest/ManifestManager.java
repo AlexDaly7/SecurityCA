@@ -96,6 +96,18 @@ public class ManifestManager {
             expectingAck = false;
         }
     }
+    
+    public static void updateFile() throws IOException {
+        if (expectingAck) {
+            entries.replaceAll(e -> e.name().equals(lastName)
+                    ? new FileEntry(e.id(), e.name(), System.currentTimeMillis())
+                    : e);
+            save();
+            onChange.run();
+            lastName = "";
+            expectingAck = false;
+        }
+    }
 
     public static List<FileEntry> getFiles() {
         return entries;
